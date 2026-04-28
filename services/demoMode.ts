@@ -4,7 +4,8 @@
  */
 
 // Set to true to enable demo mode (no API needed)
-export const DEMO_MODE = true;
+// Set to false to use real API
+export const DEMO_MODE = false;
 
 // Demo user data
 export const DEMO_USER = {

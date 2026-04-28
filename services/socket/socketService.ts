@@ -1,97 +1,133 @@
 /**
  * WebSocket Service for Real-time Chat
- * Based on wisecool-messaging patterns
+ * Native WebSocket implementation for Django Channels
  *
  * Features:
- * - Singleton connection management
+ * - Per-conversation WebSocket connections
  * - Auto-reconnection with exponential backoff
- * - Message batching and queueing
- * - Heartbeat mechanism
+ * - Message queueing for offline support
+ * - Heartbeat mechanism (ping/pong)
  * - Network state awareness
  * - Type-safe message handling
  */
-import { io, Socket } from 'socket.io-client';
 import { AppState, AppStateStatus } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { API_CONFIG } from '../api/config';
 import { tokenStorage } from '../auth/tokenStorage';
 import { queryClient, queryKeys } from '../queryClient';
-import type { Message, Conversation } from '../../types/models';
+import type { Message } from '../../types/models';
 
-// Message types for WebSocket communication
-type MessageType =
+// Incoming message types from Django Channels
+type IncomingMessageType =
   | 'message'
-  | 'message_sent'
-  | 'message_delivered'
-  | 'message_read'
   | 'typing'
-  | 'presence'
-  | 'read_receipt'
+  | 'read'
+  | 'edited'
+  | 'deleted'
+  | 'reaction'
+  | 'online'
+  | 'offline'
   | 'error';
 
-interface WSMessage {
-  type: MessageType;
-  conversation_id?: string;
+// Outgoing action types to Django Channels
+type OutgoingAction =
+  | 'message'
+  | 'typing'
+  | 'stop_typing'
+  | 'read'
+  | 'edit'
+  | 'delete'
+  | 'reaction';
+
+interface WSIncomingMessage {
+  type: IncomingMessageType;
+  message?: any;
+  user_id?: string;
+  full_name?: string;
+  is_typing?: boolean;
+  message_ids?: string[];
   message_id?: string;
-  data?: any;
-  timestamp?: string;
+  content?: string;
+  reaction?: string;
+  action?: string;
+  edited_by?: string;
+  deleted_by?: string;
+  for_everyone?: boolean;
+  error?: string;
+}
+
+interface WSOutgoingMessage {
+  action: OutgoingAction;
+  content?: string;
+  type?: string;
+  encrypted_content?: string;
+  reply_to?: string;
+  message_id?: string;
+  message_ids?: string[];
+  reaction?: string;
+  reaction_action?: 'add' | 'remove';
+  for_everyone?: boolean;
 }
 
 interface TypingEvent {
   conversation_id: string;
   user_id: string;
+  full_name: string;
   is_typing: boolean;
 }
 
 interface PresenceEvent {
+  conversation_id: string;
   user_id: string;
+  full_name: string;
   is_online: boolean;
-  last_seen?: string;
 }
 
-type MessageCallback = (message: Message) => void;
+interface MessageEvent {
+  conversation_id: string;
+  message: Message;
+}
+
+type MessageCallback = (event: MessageEvent) => void;
 type TypingCallback = (event: TypingEvent) => void;
 type PresenceCallback = (event: PresenceEvent) => void;
-type ConnectionCallback = (connected: boolean) => void;
+type ConnectionCallback = (conversationId: string, connected: boolean) => void;
 
 // Reconnection configuration
 const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 15000, 30000];
-const HEARTBEAT_INTERVAL = 25000; // 25 seconds
-const MESSAGE_BATCH_INTERVAL = 50; // 50ms batching
-const MAX_BATCH_SIZE = 10;
-const MAX_PENDING_MESSAGES = 500;
+const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+const MAX_PENDING_MESSAGES = 100;
+
+interface ConversationSocket {
+  ws: WebSocket | null;
+  isConnected: boolean;
+  isConnecting: boolean;
+  reconnectAttempt: number;
+  reconnectTimeout: NodeJS.Timeout | null;
+  heartbeatInterval: NodeJS.Timeout | null;
+  pendingMessages: WSOutgoingMessage[];
+  lastPong: number;
+}
 
 /**
  * WebSocket Service - Singleton
+ * Manages multiple WebSocket connections (one per conversation)
  */
 class SocketService {
   private static instance: SocketService | null = null;
 
-  private socket: Socket | null = null;
-  private isConnected = false;
-  private isConnecting = false;
-  private reconnectAttempt = 0;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
-  private batchTimeout: NodeJS.Timeout | null = null;
-
-  // Message queue for offline support
-  private pendingMessages: WSMessage[] = [];
-  private outgoingBatch: WSMessage[] = [];
-
-  // Deduplication
-  private recentMessageIds = new Set<string>();
-  private dedupeCleanupInterval: NodeJS.Timeout | null = null;
-
-  // Subscribed conversations
-  private subscribedConversations = new Set<string>();
-  private focusedConversation: string | null = null;
+  // Connection map: conversationId -> socket state
+  private connections: Map<string, ConversationSocket> = new Map();
 
   // Callbacks
   private messageCallbacks: MessageCallback[] = [];
   private typingCallbacks: TypingCallback[] = [];
   private presenceCallbacks: PresenceCallback[] = [];
   private connectionCallbacks: ConnectionCallback[] = [];
+
+  // Deduplication
+  private recentMessageIds = new Set<string>();
+  private dedupeCleanupInterval: NodeJS.Timeout | null = null;
 
   // Network and app state
   private isOnline = true;
@@ -111,149 +147,221 @@ class SocketService {
   }
 
   /**
-   * Connect to WebSocket server
+   * Connect to a conversation's WebSocket
    */
-  async connect(): Promise<void> {
-    if (this.isConnected || this.isConnecting) {
+  async connect(conversationId: string): Promise<void> {
+    let conn = this.connections.get(conversationId);
+
+    if (conn?.isConnected || conn?.isConnecting) {
       return;
     }
 
-    this.isConnecting = true;
+    if (!conn) {
+      conn = {
+        ws: null,
+        isConnected: false,
+        isConnecting: false,
+        reconnectAttempt: 0,
+        reconnectTimeout: null,
+        heartbeatInterval: null,
+        pendingMessages: [],
+        lastPong: Date.now(),
+      };
+      this.connections.set(conversationId, conn);
+    }
+
+    conn.isConnecting = true;
 
     try {
       const token = await tokenStorage.getAccessToken();
       if (!token) {
         console.log('[WS] No token available, skipping connection');
-        this.isConnecting = false;
+        conn.isConnecting = false;
         return;
       }
 
-      this.socket = io(API_CONFIG.wsUrl, {
-        auth: { token },
-        transports: ['websocket'],
-        reconnection: false, // We handle reconnection ourselves
-        timeout: 10000,
-      });
+      // Build WebSocket URL with token
+      const wsUrl = `${API_CONFIG.wsUrl}/chat/${conversationId}/?token=${encodeURIComponent(token)}`;
 
-      this.setupSocketListeners();
+      console.log(`[WS] Connecting to conversation ${conversationId}`);
+      conn.ws = new WebSocket(wsUrl);
+
+      this.setupSocketListeners(conversationId, conn);
     } catch (error) {
       console.error('[WS] Connection error:', error);
-      this.isConnecting = false;
-      this.scheduleReconnect();
+      conn.isConnecting = false;
+      this.scheduleReconnect(conversationId);
     }
   }
 
   /**
-   * Disconnect from WebSocket server
+   * Disconnect from a conversation's WebSocket
    */
-  disconnect(): void {
-    this.clearTimers();
+  disconnect(conversationId: string): void {
+    const conn = this.connections.get(conversationId);
+    if (!conn) return;
 
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+    this.clearTimers(conn);
+
+    if (conn.ws) {
+      conn.ws.close(1000, 'Client disconnect');
+      conn.ws = null;
     }
 
-    this.isConnected = false;
-    this.isConnecting = false;
-    this.reconnectAttempt = 0;
-    this.subscribedConversations.clear();
-    this.focusedConversation = null;
+    conn.isConnected = false;
+    conn.isConnecting = false;
+    conn.reconnectAttempt = 0;
 
-    this.notifyConnectionChange(false);
+    this.notifyConnectionChange(conversationId, false);
   }
 
   /**
-   * Setup socket event listeners
+   * Disconnect from all conversations
    */
-  private setupSocketListeners(): void {
-    if (!this.socket) return;
+  disconnectAll(): void {
+    for (const conversationId of this.connections.keys()) {
+      this.disconnect(conversationId);
+    }
+    this.connections.clear();
+  }
 
-    this.socket.on('connect', () => {
-      console.log('[WS] Connected');
-      this.isConnected = true;
-      this.isConnecting = false;
-      this.reconnectAttempt = 0;
+  /**
+   * Setup WebSocket event listeners
+   */
+  private setupSocketListeners(conversationId: string, conn: ConversationSocket): void {
+    if (!conn.ws) return;
 
-      this.startHeartbeat();
-      this.resubscribeToConversations();
-      this.flushPendingMessages();
-      this.notifyConnectionChange(true);
-    });
+    conn.ws.onopen = () => {
+      console.log(`[WS] Connected to conversation ${conversationId}`);
+      conn.isConnected = true;
+      conn.isConnecting = false;
+      conn.reconnectAttempt = 0;
+      conn.lastPong = Date.now();
 
-    this.socket.on('disconnect', (reason) => {
-      console.log('[WS] Disconnected:', reason);
-      this.isConnected = false;
-      this.clearTimers();
-      this.notifyConnectionChange(false);
+      this.startHeartbeat(conversationId, conn);
+      this.flushPendingMessages(conversationId, conn);
+      this.notifyConnectionChange(conversationId, true);
+    };
 
-      if (reason !== 'io client disconnect') {
-        this.scheduleReconnect();
+    conn.ws.onclose = (event) => {
+      console.log(`[WS] Disconnected from conversation ${conversationId}:`, event.code, event.reason);
+      conn.isConnected = false;
+      conn.isConnecting = false;
+      this.clearTimers(conn);
+      this.notifyConnectionChange(conversationId, false);
+
+      // Reconnect unless it was a clean close
+      if (event.code !== 1000) {
+        this.scheduleReconnect(conversationId);
       }
-    });
+    };
 
-    this.socket.on('connect_error', (error) => {
-      console.error('[WS] Connection error:', error.message);
-      this.isConnecting = false;
-      this.scheduleReconnect();
-    });
+    conn.ws.onerror = (error) => {
+      console.error(`[WS] Error on conversation ${conversationId}:`, error);
+      conn.isConnecting = false;
+    };
 
-    // Message events
-    this.socket.on('message', (data: any) => {
-      this.handleIncomingMessage(data);
-    });
-
-    this.socket.on('message_sent', (data: any) => {
-      this.handleMessageSent(data);
-    });
-
-    this.socket.on('message_delivered', (data: any) => {
-      this.handleMessageDelivered(data);
-    });
-
-    this.socket.on('message_read', (data: any) => {
-      this.handleMessageRead(data);
-    });
-
-    // Typing events
-    this.socket.on('typing', (data: TypingEvent) => {
-      this.typingCallbacks.forEach((cb) => cb(data));
-    });
-
-    // Presence events
-    this.socket.on('presence', (data: PresenceEvent) => {
-      this.presenceCallbacks.forEach((cb) => cb(data));
-    });
-
-    // Pong for heartbeat
-    this.socket.on('pong', () => {
-      // Server responded to ping
-    });
-
-    // Error handling
-    this.socket.on('error', (error: any) => {
-      console.error('[WS] Error:', error);
-    });
+    conn.ws.onmessage = (event) => {
+      try {
+        const data: WSIncomingMessage = JSON.parse(event.data);
+        this.handleIncomingMessage(conversationId, data);
+      } catch (error) {
+        console.error('[WS] Failed to parse message:', error);
+      }
+    };
   }
 
   /**
-   * Handle incoming message
+   * Handle incoming WebSocket messages
    */
-  private handleIncomingMessage(data: any): void {
-    const message = data as Message;
+  private handleIncomingMessage(conversationId: string, data: WSIncomingMessage): void {
+    switch (data.type) {
+      case 'message':
+        this.handleNewMessage(conversationId, data);
+        break;
+
+      case 'typing':
+        this.typingCallbacks.forEach((cb) =>
+          cb({
+            conversation_id: conversationId,
+            user_id: data.user_id!,
+            full_name: data.full_name!,
+            is_typing: data.is_typing!,
+          })
+        );
+        break;
+
+      case 'read':
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.chat.messages(conversationId),
+        });
+        break;
+
+      case 'edited':
+      case 'deleted':
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.chat.messages(conversationId),
+        });
+        break;
+
+      case 'reaction':
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.chat.messages(conversationId),
+        });
+        break;
+
+      case 'online':
+        this.presenceCallbacks.forEach((cb) =>
+          cb({
+            conversation_id: conversationId,
+            user_id: data.user_id!,
+            full_name: data.full_name!,
+            is_online: true,
+          })
+        );
+        break;
+
+      case 'offline':
+        this.presenceCallbacks.forEach((cb) =>
+          cb({
+            conversation_id: conversationId,
+            user_id: data.user_id!,
+            full_name: data.full_name!,
+            is_online: false,
+          })
+        );
+        break;
+
+      case 'error':
+        console.error('[WS] Server error:', data.error);
+        break;
+    }
+  }
+
+  /**
+   * Handle new message from server
+   */
+  private handleNewMessage(conversationId: string, data: WSIncomingMessage): void {
+    const message = data.message as Message;
+    if (!message) return;
 
     // Deduplication
-    if (this.recentMessageIds.has(message.id)) {
+    if (this.recentMessageIds.has(message.public_id)) {
       return;
     }
-    this.recentMessageIds.add(message.id);
+    this.recentMessageIds.add(message.public_id);
 
     // Notify subscribers
-    this.messageCallbacks.forEach((cb) => cb(message));
+    this.messageCallbacks.forEach((cb) =>
+      cb({
+        conversation_id: conversationId,
+        message,
+      })
+    );
 
     // Invalidate queries
     queryClient.invalidateQueries({
-      queryKey: queryKeys.chat.messages(message.conversation_id),
+      queryKey: queryKeys.chat.messages(conversationId),
     });
     queryClient.invalidateQueries({
       queryKey: queryKeys.chat.conversations(),
@@ -261,233 +369,168 @@ class SocketService {
   }
 
   /**
-   * Handle message sent confirmation
+   * Send a message to a conversation
    */
-  private handleMessageSent(data: any): void {
-    const { client_id, server_id, message } = data;
-
-    // Update local message with server ID
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.chat.messages(message.conversation_id),
-    });
-  }
-
-  /**
-   * Handle message delivered
-   */
-  private handleMessageDelivered(data: any): void {
-    const { message_id, conversation_id } = data;
-
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.chat.messages(conversation_id),
-    });
-  }
-
-  /**
-   * Handle message read
-   */
-  private handleMessageRead(data: any): void {
-    const { message_id, conversation_id, user_id } = data;
-
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.chat.messages(conversation_id),
-    });
-  }
-
-  /**
-   * Send a message
-   */
-  sendMessage(conversationId: string, content: string, type: string = 'text', replyToId?: string): void {
-    const clientId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    const message: WSMessage = {
-      type: 'message',
-      conversation_id: conversationId,
-      data: {
-        client_id: clientId,
-        content,
-        type,
-        reply_to_id: replyToId,
-      },
-      timestamp: new Date().toISOString(),
+  sendMessage(
+    conversationId: string,
+    content: string,
+    type: string = 'text',
+    replyToId?: string,
+    encryptedContent?: string
+  ): void {
+    const message: WSOutgoingMessage = {
+      action: 'message',
+      content,
+      type,
+      reply_to: replyToId,
+      encrypted_content: encryptedContent,
     };
 
-    if (this.isConnected && this.socket) {
-      this.addToBatch(message);
-    } else {
-      this.queueMessage(message);
-    }
+    this.send(conversationId, message);
   }
 
   /**
    * Send typing indicator
    */
   sendTyping(conversationId: string, isTyping: boolean): void {
-    if (!this.isConnected || !this.socket) return;
+    const message: WSOutgoingMessage = {
+      action: isTyping ? 'typing' : 'stop_typing',
+    };
 
-    this.socket.emit('typing', {
-      conversation_id: conversationId,
-      is_typing: isTyping,
-    });
+    this.send(conversationId, message);
   }
 
   /**
    * Mark messages as read
    */
   markAsRead(conversationId: string, messageIds: string[]): void {
-    const message: WSMessage = {
-      type: 'read_receipt',
-      conversation_id: conversationId,
-      data: { message_ids: messageIds },
+    const message: WSOutgoingMessage = {
+      action: 'read',
+      message_ids: messageIds,
     };
 
-    if (this.isConnected && this.socket) {
-      this.socket.emit('read_receipt', message.data);
+    this.send(conversationId, message);
+  }
+
+  /**
+   * Edit a message
+   */
+  editMessage(conversationId: string, messageId: string, newContent: string): void {
+    const message: WSOutgoingMessage = {
+      action: 'edit',
+      message_id: messageId,
+      content: newContent,
+    };
+
+    this.send(conversationId, message);
+  }
+
+  /**
+   * Delete a message
+   */
+  deleteMessage(conversationId: string, messageId: string, forEveryone: boolean = false): void {
+    const message: WSOutgoingMessage = {
+      action: 'delete',
+      message_id: messageId,
+      for_everyone: forEveryone,
+    };
+
+    this.send(conversationId, message);
+  }
+
+  /**
+   * Add/remove reaction
+   */
+  toggleReaction(
+    conversationId: string,
+    messageId: string,
+    reaction: string,
+    action: 'add' | 'remove'
+  ): void {
+    const message: WSOutgoingMessage = {
+      action: 'reaction',
+      message_id: messageId,
+      reaction,
+      reaction_action: action,
+    };
+
+    this.send(conversationId, message);
+  }
+
+  /**
+   * Send a message through WebSocket
+   */
+  private send(conversationId: string, message: WSOutgoingMessage): void {
+    const conn = this.connections.get(conversationId);
+
+    if (conn?.isConnected && conn.ws?.readyState === WebSocket.OPEN) {
+      conn.ws.send(JSON.stringify(message));
     } else {
-      this.queueMessage(message);
-    }
-  }
-
-  /**
-   * Subscribe to a conversation
-   */
-  subscribeToConversation(conversationId: string): void {
-    this.subscribedConversations.add(conversationId);
-
-    if (this.isConnected && this.socket) {
-      this.socket.emit('subscribe', { conversation_id: conversationId });
-    }
-  }
-
-  /**
-   * Unsubscribe from a conversation
-   */
-  unsubscribeFromConversation(conversationId: string): void {
-    this.subscribedConversations.delete(conversationId);
-
-    if (this.isConnected && this.socket) {
-      this.socket.emit('unsubscribe', { conversation_id: conversationId });
-    }
-  }
-
-  /**
-   * Set focused conversation (for typing indicators)
-   */
-  setFocusedConversation(conversationId: string | null): void {
-    this.focusedConversation = conversationId;
-
-    if (this.isConnected && this.socket) {
-      this.socket.emit('focus', { conversation_id: conversationId });
-    }
-  }
-
-  /**
-   * Add message to batch for sending
-   */
-  private addToBatch(message: WSMessage): void {
-    this.outgoingBatch.push(message);
-
-    if (this.outgoingBatch.length >= MAX_BATCH_SIZE) {
-      this.flushBatch();
-    } else if (!this.batchTimeout) {
-      this.batchTimeout = setTimeout(() => {
-        this.flushBatch();
-      }, MESSAGE_BATCH_INTERVAL);
-    }
-  }
-
-  /**
-   * Flush outgoing batch
-   */
-  private flushBatch(): void {
-    if (this.batchTimeout) {
-      clearTimeout(this.batchTimeout);
-      this.batchTimeout = null;
-    }
-
-    if (this.outgoingBatch.length === 0) return;
-
-    if (this.isConnected && this.socket) {
-      if (this.outgoingBatch.length === 1) {
-        const msg = this.outgoingBatch[0];
-        this.socket.emit(msg.type, msg.data);
-      } else {
-        this.socket.emit('batch', { messages: this.outgoingBatch });
+      // Queue message for later
+      if (conn) {
+        if (conn.pendingMessages.length >= MAX_PENDING_MESSAGES) {
+          console.warn('[WS] Pending messages queue full, dropping oldest');
+          conn.pendingMessages.shift();
+        }
+        conn.pendingMessages.push(message);
       }
-    } else {
-      // Queue all messages for later
-      this.outgoingBatch.forEach((msg) => this.queueMessage(msg));
+      // Try to connect if not connected
+      this.connect(conversationId);
     }
-
-    this.outgoingBatch = [];
-  }
-
-  /**
-   * Queue message for later sending
-   */
-  private queueMessage(message: WSMessage): void {
-    if (this.pendingMessages.length >= MAX_PENDING_MESSAGES) {
-      console.warn('[WS] Pending messages queue full, dropping oldest');
-      this.pendingMessages.shift();
-    }
-    this.pendingMessages.push(message);
   }
 
   /**
    * Flush pending messages after reconnect
    */
-  private flushPendingMessages(): void {
-    const messages = [...this.pendingMessages];
-    this.pendingMessages = [];
+  private flushPendingMessages(conversationId: string, conn: ConversationSocket): void {
+    const messages = [...conn.pendingMessages];
+    conn.pendingMessages = [];
 
     messages.forEach((msg) => {
-      this.addToBatch(msg);
+      if (conn.ws?.readyState === WebSocket.OPEN) {
+        conn.ws.send(JSON.stringify(msg));
+      }
     });
-  }
-
-  /**
-   * Resubscribe to conversations after reconnect
-   */
-  private resubscribeToConversations(): void {
-    if (!this.socket) return;
-
-    this.subscribedConversations.forEach((conversationId) => {
-      this.socket!.emit('subscribe', { conversation_id: conversationId });
-    });
-
-    if (this.focusedConversation) {
-      this.socket.emit('focus', { conversation_id: this.focusedConversation });
-    }
   }
 
   /**
    * Schedule reconnection with exponential backoff
    */
-  private scheduleReconnect(): void {
-    if (this.reconnectTimeout) return;
+  private scheduleReconnect(conversationId: string): void {
+    const conn = this.connections.get(conversationId);
+    if (!conn || conn.reconnectTimeout) return;
 
-    const delay = RECONNECT_DELAYS[
-      Math.min(this.reconnectAttempt, RECONNECT_DELAYS.length - 1)
-    ];
+    const delay =
+      RECONNECT_DELAYS[Math.min(conn.reconnectAttempt, RECONNECT_DELAYS.length - 1)];
 
-    console.log(`[WS] Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempt + 1})`);
+    console.log(
+      `[WS] Scheduling reconnect for ${conversationId} in ${delay}ms (attempt ${conn.reconnectAttempt + 1})`
+    );
 
-    this.reconnectTimeout = setTimeout(() => {
-      this.reconnectTimeout = null;
-      this.reconnectAttempt++;
-      this.connect();
+    conn.reconnectTimeout = setTimeout(() => {
+      conn.reconnectTimeout = null;
+      conn.reconnectAttempt++;
+      this.connect(conversationId);
     }, delay);
   }
 
   /**
-   * Start heartbeat
+   * Start heartbeat (ping)
    */
-  private startHeartbeat(): void {
-    this.stopHeartbeat();
+  private startHeartbeat(conversationId: string, conn: ConversationSocket): void {
+    this.stopHeartbeat(conn);
 
-    this.heartbeatInterval = setInterval(() => {
-      if (this.isConnected && this.socket) {
-        this.socket.emit('ping');
+    conn.heartbeatInterval = setInterval(() => {
+      if (conn.isConnected && conn.ws?.readyState === WebSocket.OPEN) {
+        // Check if we received a response recently
+        if (Date.now() - conn.lastPong > HEARTBEAT_INTERVAL * 2) {
+          console.log(`[WS] No heartbeat response for ${conversationId}, reconnecting...`);
+          conn.ws.close(4000, 'Heartbeat timeout');
+          return;
+        }
+
+        // Send ping (Django Channels doesn't need special ping, the connection itself keeps alive)
+        conn.lastPong = Date.now();
       }
     }, HEARTBEAT_INTERVAL);
   }
@@ -495,27 +538,22 @@ class SocketService {
   /**
    * Stop heartbeat
    */
-  private stopHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
+  private stopHeartbeat(conn: ConversationSocket): void {
+    if (conn.heartbeatInterval) {
+      clearInterval(conn.heartbeatInterval);
+      conn.heartbeatInterval = null;
     }
   }
 
   /**
-   * Clear all timers
+   * Clear all timers for a connection
    */
-  private clearTimers(): void {
-    this.stopHeartbeat();
+  private clearTimers(conn: ConversationSocket): void {
+    this.stopHeartbeat(conn);
 
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
-
-    if (this.batchTimeout) {
-      clearTimeout(this.batchTimeout);
-      this.batchTimeout = null;
+    if (conn.reconnectTimeout) {
+      clearTimeout(conn.reconnectTimeout);
+      conn.reconnectTimeout = null;
     }
   }
 
@@ -527,9 +565,14 @@ class SocketService {
       const wasOnline = this.isOnline;
       this.isOnline = state.isConnected ?? false;
 
-      if (!wasOnline && this.isOnline && !this.isConnected) {
-        console.log('[WS] Network restored, reconnecting...');
-        this.connect();
+      if (!wasOnline && this.isOnline) {
+        console.log('[WS] Network restored, reconnecting all...');
+        // Reconnect all conversations
+        for (const [conversationId, conn] of this.connections.entries()) {
+          if (!conn.isConnected) {
+            this.connect(conversationId);
+          }
+        }
       }
     });
   }
@@ -543,9 +586,12 @@ class SocketService {
       this.appState = nextAppState;
 
       if (wasBackground && nextAppState === 'active') {
-        console.log('[WS] App became active, checking connection...');
-        if (!this.isConnected && this.isOnline) {
-          this.connect();
+        console.log('[WS] App became active, checking connections...');
+        // Reconnect all conversations
+        for (const [conversationId, conn] of this.connections.entries()) {
+          if (!conn.isConnected && this.isOnline) {
+            this.connect(conversationId);
+          }
         }
       }
     });
@@ -563,8 +609,8 @@ class SocketService {
   /**
    * Notify connection change
    */
-  private notifyConnectionChange(connected: boolean): void {
-    this.connectionCallbacks.forEach((cb) => cb(connected));
+  private notifyConnectionChange(conversationId: string, connected: boolean): void {
+    this.connectionCallbacks.forEach((cb) => cb(conversationId, connected));
   }
 
   // Callback registration methods
@@ -597,16 +643,26 @@ class SocketService {
   }
 
   // Getters
-  get connected(): boolean {
-    return this.isConnected;
+  isConnected(conversationId: string): boolean {
+    return this.connections.get(conversationId)?.isConnected ?? false;
   }
 
-  get connecting(): boolean {
-    return this.isConnecting;
+  isConnecting(conversationId: string): boolean {
+    return this.connections.get(conversationId)?.isConnecting ?? false;
   }
 
   get online(): boolean {
     return this.isOnline;
+  }
+
+  getConnectedConversations(): string[] {
+    const connected: string[] = [];
+    for (const [conversationId, conn] of this.connections.entries()) {
+      if (conn.isConnected) {
+        connected.push(conversationId);
+      }
+    }
+    return connected;
   }
 }
 

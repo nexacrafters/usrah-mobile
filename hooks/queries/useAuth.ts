@@ -22,13 +22,13 @@ export function useLogin() {
       if (DEMO_MODE) {
         await new Promise(resolve => setTimeout(resolve, 500));
         await tokenStorage.saveTokens(DEMO_TOKENS.access, DEMO_TOKENS.refresh);
-        return { user: DEMO_USER, ...DEMO_TOKENS };
+        return { user: DEMO_USER, tokens: DEMO_TOKENS };
       }
-      return authService.login(credentials.phone, credentials.password);
+      return authService.login(credentials);
     },
     onSuccess: (data: any) => {
       if (DEMO_MODE) {
-        setAuth(data.user, data.access, data.refresh);
+        setAuth(data.user, data.tokens.access, data.tokens.refresh);
       } else {
         useAuthStore.getState().setUser(data.user);
       }
@@ -46,26 +46,29 @@ export function useRegister() {
     mutationFn: async (data: {
       phone: string;
       password: string;
-      name: string;
+      full_name: string;
       email?: string;
+      gender?: 'male' | 'female';
     }) => {
       if (DEMO_MODE) {
         await new Promise(resolve => setTimeout(resolve, 500));
         return {
           user: {
             ...DEMO_USER,
-            full_name: data.name,
+            full_name: data.full_name,
             phone: data.phone,
             email: data.email || DEMO_USER.email,
           },
+          tokens: DEMO_TOKENS,
         };
       }
-      return authService.register(
-        data.phone,
-        data.password,
-        data.name,
-        data.email
-      );
+      return authService.register({
+        phone: data.phone,
+        password: data.password,
+        full_name: data.full_name,
+        email: data.email,
+        gender: data.gender || 'male',
+      });
     },
   });
 }
@@ -80,7 +83,7 @@ export function useSendOtp() {
         await new Promise(resolve => setTimeout(resolve, 300));
         return { success: true, message: 'OTP sent (demo mode)' };
       }
-      return authService.sendOtp(data.phone, data.purpose);
+      return authService.sendOtp(data.phone);
     },
   });
 }
@@ -164,7 +167,7 @@ export function useResetPassword() {
         await new Promise(resolve => setTimeout(resolve, 500));
         return { success: true };
       }
-      return authService.resetPassword(data.phone, data.code, data.newPassword);
+      return authService.confirmPasswordReset(data.phone, data.code, data.newPassword);
     },
   });
 }
@@ -264,11 +267,12 @@ export function useAuthCheck() {
           }
           return { isAuthenticated: false, user: null };
         }
-        const result = await authService.checkAuth();
-        if (result.isAuthenticated && result.user) {
-          setUser(result.user);
+        const isAuthenticated = await authService.checkAuth();
+        if (isAuthenticated) {
+          const user = useAuthStore.getState().user;
+          return { isAuthenticated: true, user };
         }
-        return result;
+        return { isAuthenticated: false, user: null };
       } finally {
         setLoading(false);
       }
@@ -289,7 +293,6 @@ export function useCreateFamily() {
     mutationFn: async (data: {
       name: string;
       description?: string;
-      sistersCircleEnabled?: boolean;
     }) => {
       if (DEMO_MODE) {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -300,11 +303,7 @@ export function useCreateFamily() {
           members: [{ id: '1', user: DEMO_USER, role: 'admin' }],
         };
       }
-      return authService.createFamily(
-        data.name,
-        data.description,
-        data.sistersCircleEnabled
-      );
+      return authService.createFamily(data.name, data.description);
     },
     onSuccess: (family: any) => {
       setFamily(family);

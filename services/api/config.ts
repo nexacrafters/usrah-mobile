@@ -5,17 +5,19 @@
 // Detect development environment
 const isDev = __DEV__;
 
-// API Base URLs
+// API Base URLs - Production server
+const API_HOST = 'usrah-api.nexacrafters.com';
+
 export const API_CONFIG = {
   // REST API base URL
   baseUrl: isDev
     ? 'http://10.0.2.2:8000/api/v1' // Android emulator -> host machine
-    : 'https://api.usrah.app/api/v1',
+    : `https://${API_HOST}/api/v1`,
 
   // WebSocket URL for real-time chat
   wsUrl: isDev
     ? 'ws://10.0.2.2:8000/ws'
-    : 'wss://api.usrah.app/ws',
+    : `wss://${API_HOST}/ws`,
 
   // Request timeout (30 seconds)
   timeout: 30000,
