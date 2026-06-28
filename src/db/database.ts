@@ -79,6 +79,7 @@ const MIGRATIONS: string[] = [
     status TEXT,
     receipt TEXT,
     is_recurring INTEGER DEFAULT 0,
+    is_private INTEGER DEFAULT 0,
     tags TEXT,
     created_by TEXT,
     created TEXT,
@@ -168,6 +169,32 @@ const MIGRATIONS: string[] = [
 ];
 
 /**
+ * Additive column migrations for databases created before the column existed.
+ * `CREATE TABLE IF NOT EXISTS` never alters an existing table, so new columns
+ * must be added with ALTER TABLE — guarded by a PRAGMA check so it is a no-op
+ * once the column is present (and never throws "duplicate column").
+ */
+const COLUMN_MIGRATIONS: Array<{table: string; column: string; type: string}> = [
+  {table: 'transactions', column: 'is_private', type: 'INTEGER DEFAULT 0'},
+];
+
+function runColumnMigrations(handle: DB): void {
+  for (const m of COLUMN_MIGRATIONS) {
+    try {
+      const info = handle.executeSync(`PRAGMA table_info(${m.table});`);
+      const cols = (info.rows ?? []).map((r: any) => r.name);
+      if (!cols.includes(m.column)) {
+        handle.executeSync(
+          `ALTER TABLE ${m.table} ADD COLUMN ${m.column} ${m.type};`,
+        );
+      }
+    } catch {
+      // Non-fatal: a failed additive migration must never block app startup.
+    }
+  }
+}
+
+/**
  * Open the database (if not already) and run idempotent migrations.
  * Safe to call multiple times — returns the same singleton handle.
  */
@@ -180,6 +207,7 @@ export function initDatabase(): DB {
   for (const stmt of MIGRATIONS) {
     db.executeSync(stmt);
   }
+  runColumnMigrations(db);
   return db;
 }
 

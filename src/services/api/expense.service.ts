@@ -51,6 +51,7 @@ export interface CreateTransactionRequest {
   notes?: string;
   date: string; // 'YYYY-MM-DD'
   tags?: string[];
+  is_private?: boolean;
 }
 
 export interface CreateCategoryRequest {
@@ -190,6 +191,7 @@ class ExpenseService {
       notes: data.notes,
       date: data.date,
       tags: data.tags,
+      is_private: data.is_private,
       category_name: display.name,
       category_icon: display.icon,
       category_color: display.color,

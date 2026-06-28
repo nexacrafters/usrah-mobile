@@ -85,6 +85,8 @@ export default function MoreScreen() {
     {id: 'zakat', title: t('settings.zakatCalculator'), icon: 'hand-coin', color: colors.islamic.alhamdulillah, onPress: () => navigation.navigate('Zakat')},
     {id: 'dua', title: t('settings.dailyDuas'), icon: 'hands-pray', color: colors.islamic.barakallah, onPress: () => navigation.navigate('Duas')},
     {id: 'hijri', title: t('settings.hijriCalendar'), icon: 'calendar-star', color: colors.skyBlue[500], onPress: () => navigation.navigate('Hijri')},
+    {id: 'habits', title: t('habits.title', {defaultValue: 'Daily Habits'}), icon: 'sprout-outline', color: colors.islamic.mashallah, onPress: () => navigation.navigate('Habits')},
+    {id: 'hifz', title: t('hifz.title', {defaultValue: 'Memorization'}), icon: 'book-clock-outline', color: colors.gold[600], onPress: () => navigation.navigate('Memorization')},
   ];
 
   const FAMILY_FEATURES: Array<MenuItem & {color: string}> = [

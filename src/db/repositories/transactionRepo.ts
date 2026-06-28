@@ -30,6 +30,7 @@ interface RawTransactionRow {
   status: string | null;
   receipt: string | null;
   is_recurring: number | null;
+  is_private: number | null;
   tags: string | null;
   created_by: string | null;
   created: string | null;
@@ -67,6 +68,7 @@ function mapRow(r: RawTransactionRow): Transaction {
     status: r.status ?? undefined,
     receipt: r.receipt,
     is_recurring: r.is_recurring === 1,
+    is_private: r.is_private === 1,
     tags: parseJson<string[]>(r.tags),
     created_by: parseJson<TransactionAuthor>(r.created_by),
     created: r.created ?? undefined,
@@ -83,6 +85,7 @@ export interface CreateTransactionInput {
   notes?: string;
   date: string;
   tags?: string[];
+  is_private?: boolean;
   // Optional denormalised category display fields (kept fresh locally).
   category_name?: string | null;
   category_icon?: string | null;
@@ -110,8 +113,8 @@ export function createTransaction(
     `INSERT INTO ${TABLE}
       (public_id, family_id, type, category_id, category_name, category_icon,
        category_color, amount, currency, description, notes, date, status,
-       receipt, is_recurring, tags, created_by, created, updated, _dirty, _deleted)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, 0, ?, NULL, ?, ?, 1, 0);`,
+       receipt, is_recurring, is_private, tags, created_by, created, updated, _dirty, _deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, 0, ?, ?, NULL, ?, ?, 1, 0);`,
     [
       id,
       familyId,
@@ -125,6 +128,7 @@ export function createTransaction(
       input.description ?? null,
       input.notes ?? null,
       input.date,
+      input.is_private ? 1 : 0,
       tags,
       now,
       now,
@@ -144,6 +148,7 @@ export function createTransaction(
     notes: input.notes,
     date: input.date,
     is_recurring: false,
+    is_private: input.is_private ?? false,
     tags: input.tags,
     created: now,
     updated: now,

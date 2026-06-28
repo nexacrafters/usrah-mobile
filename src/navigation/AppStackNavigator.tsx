@@ -44,6 +44,8 @@ import DebtsScreen from '../screens/finance/DebtsScreen';
 import RecurringScreen from '../screens/finance/RecurringScreen';
 import MealPlanScreen from '../screens/food/MealPlanScreen';
 import PantryScreen from '../screens/food/PantryScreen';
+import HabitsScreen from '../screens/habits/HabitsScreen';
+import MemorizationScreen from '../screens/habits/MemorizationScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -106,6 +108,8 @@ export default function AppStackNavigator() {
       <Stack.Screen name="Recurring" component={RecurringScreen} />
       <Stack.Screen name="MealPlan" component={MealPlanScreen} />
       <Stack.Screen name="Pantry" component={PantryScreen} />
+      <Stack.Screen name="Habits" component={HabitsScreen} />
+      <Stack.Screen name="Memorization" component={MemorizationScreen} />
     </Stack.Navigator>
   );
 }

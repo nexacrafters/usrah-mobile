@@ -64,6 +64,7 @@ export interface Transaction {
   status?: string;
   receipt?: string | null;
   is_recurring?: boolean;
+  is_private?: boolean;
   tags?: string[];
   created?: string;
   updated?: string;

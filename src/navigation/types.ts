@@ -55,6 +55,8 @@ export type AppStackParamList = {
   Recurring: undefined;
   MealPlan: undefined;
   Pantry: undefined;
+  Habits: undefined;
+  Memorization: undefined;
 };
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> =

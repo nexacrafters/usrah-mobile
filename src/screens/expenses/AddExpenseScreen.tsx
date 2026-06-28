@@ -156,6 +156,7 @@ export default function AddExpenseScreen({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recurring, setRecurring] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [receipt, setReceipt] = useState<Asset | null>(null);
 
   // Inline category creation
@@ -325,6 +326,7 @@ export default function AddExpenseScreen({
         description: description.trim() || undefined,
         notes: notes.trim() || undefined,
         date,
+        is_private: isPrivate,
       });
       addTransaction(created);
       // Best-effort receipt upload: push the new transaction to the server
@@ -718,6 +720,43 @@ export default function AddExpenseScreen({
                 {recurring && (
                   <Icon name="check" size={16} color={colors.white} />
                 )}
+              </View>
+            </TouchableOpacity>
+
+            {/* Personal (private) money toggle */}
+            <TouchableOpacity
+              style={[
+                styles.recurringRow,
+                {marginTop: spacing[3]},
+                isPrivate && {
+                  backgroundColor: accent + '14',
+                  borderColor: accent,
+                },
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setIsPrivate((v) => !v)}>
+              <View
+                style={[styles.recurringIcon, {backgroundColor: accent + '22'}]}>
+                <Icon name="lock" size={18} color={accent} />
+              </View>
+              <View style={styles.recurringTextWrap}>
+                <Text style={styles.recurringTitle}>
+                  {t('expenses.privateMoney', {defaultValue: 'Personal money'})}
+                </Text>
+                <Text style={styles.recurringHint}>
+                  {t('expenses.privateMoneyHint', {
+                    defaultValue: 'Only you can see this — hidden from the family',
+                  })}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.recurringCheck,
+                  isPrivate
+                    ? {backgroundColor: accent, borderColor: accent}
+                    : {borderColor: colors.border.dark},
+                ]}>
+                {isPrivate && <Icon name="check" size={16} color={colors.white} />}
               </View>
             </TouchableOpacity>
 

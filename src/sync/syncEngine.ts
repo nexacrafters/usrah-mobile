@@ -140,6 +140,7 @@ const ENTITIES: Record<SyncEntity, EntityConfig> = {
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,
       date: row.date,
+      is_private: !!row.is_private,
       tags: row.tags ? safeParseArray(row.tags as string) : undefined,
       updated: row.updated,
     }),
@@ -151,6 +152,7 @@ const ENTITIES: Record<SyncEntity, EntityConfig> = {
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,
       date: row.date,
+      is_private: !!row.is_private,
       tags: row.tags ? safeParseArray(row.tags as string) : undefined,
       updated: row.updated,
     }),
@@ -159,9 +161,9 @@ const ENTITIES: Record<SyncEntity, EntityConfig> = {
         `INSERT INTO transactions
           (public_id, family_id, type, category_id, category_name,
            category_icon, category_color, amount, currency, description, notes,
-           date, status, receipt, is_recurring, tags, created_by, created,
+           date, status, receipt, is_recurring, is_private, tags, created_by, created,
            updated, _dirty, _deleted)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
          ON CONFLICT(public_id) DO UPDATE SET
            family_id=excluded.family_id, type=excluded.type,
            category_id=excluded.category_id, category_name=excluded.category_name,
@@ -169,7 +171,8 @@ const ENTITIES: Record<SyncEntity, EntityConfig> = {
            amount=excluded.amount, currency=excluded.currency,
            description=excluded.description, notes=excluded.notes,
            date=excluded.date, status=excluded.status, receipt=excluded.receipt,
-           is_recurring=excluded.is_recurring, tags=excluded.tags,
+           is_recurring=excluded.is_recurring, is_private=excluded.is_private,
+           tags=excluded.tags,
            created_by=excluded.created_by, created=excluded.created,
            updated=excluded.updated, _dirty=0, _deleted=0;`,
         [
@@ -191,6 +194,7 @@ const ENTITIES: Record<SyncEntity, EntityConfig> = {
           str(remote.status),
           str(remote.receipt),
           remote.is_recurring ? 1 : 0,
+          remote.is_private ? 1 : 0,
           remote.tags ? JSON.stringify(remote.tags) : null,
           remote.created_by ? JSON.stringify(remote.created_by) : null,
           str(remote.created),

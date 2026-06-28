@@ -213,6 +213,8 @@ export default function ExpensesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  // Shared family money vs the member's own private/personal money.
+  const [scope, setScope] = useState<'shared' | 'personal'>('shared');
 
   // Edit / delete transaction sheet.
   const [editing, setEditing] = useState<Transaction | null>(null);
@@ -299,17 +301,27 @@ export default function ExpensesScreen() {
     setRefreshing(false);
   }, [loadAll, selectedPeriod]);
 
+  // Personal mode shows only the member's own private transactions; shared mode
+  // shows the family money (everything that is not private).
+  const scopedTransactions = useMemo(
+    () =>
+      transactions.filter((tx) =>
+        scope === 'personal' ? !!tx.is_private : !tx.is_private,
+      ),
+    [transactions, scope],
+  );
+
   const groups = useMemo(() => {
     // Show only transactions inside the selected period (the switcher used to
     // change just the summary, leaving the whole history in the list).
     const start = periodStartIso(selectedPeriod);
-    const inPeriod = transactions.filter((tx) => (tx.date ?? '') >= start);
+    const inPeriod = scopedTransactions.filter((tx) => (tx.date ?? '') >= start);
     return groupByDate(
       inPeriod,
       t('expenses.today'),
       t('expenses.yesterday'),
     );
-  }, [transactions, selectedPeriod, t]);
+  }, [scopedTransactions, selectedPeriod, t]);
 
   // Finance hub totals — always THIS MONTH, independent of the period switcher.
   // Monthly income = active recurring sources + this-month one-off source income
@@ -336,12 +348,19 @@ export default function ExpensesScreen() {
           inThisMonth(s.created.slice(0, 7)),
       )
       .reduce((sum, s) => sum + toNumber(s.amount), 0);
-    const txIncome = transactions
+    const txIncome = scopedTransactions
       .filter((tx) => tx.type === 'income' && inThisMonth(tx.date))
       .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
-    const expenses = transactions
+    const expenses = scopedTransactions
       .filter((tx) => tx.type === 'expense' && inThisMonth(tx.date))
       .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
+
+    // Personal mode is just the member's own spending/income — the shared
+    // recurring sources and family safe pots don't apply.
+    if (scope === 'personal') {
+      const income = txIncome;
+      return {income, expenses, safe: 0, spendable: income - expenses};
+    }
 
     const income = recurringIncome + oneOffIncome + txIncome;
     const safe = savingsFunds
@@ -349,7 +368,7 @@ export default function ExpensesScreen() {
       .reduce((sum, f) => sum + toNumber(f.balance), 0);
     const spendable = income - expenses - safe;
     return {income, expenses, safe, spendable};
-  }, [incomeSources, savingsFunds, transactions]);
+  }, [incomeSources, savingsFunds, transactions, scopedTransactions, scope]);
 
   const handleAddCreated = useCallback(() => {
     // Refresh budgets + summary so progress bars stay accurate.
@@ -705,6 +724,32 @@ export default function ExpensesScreen() {
     </View>
   );
 
+  const renderScopeSwitcher = () => (
+    <View style={styles.scopeSwitcher}>
+      {(['shared', 'personal'] as const).map((s) => {
+        const active = scope === s;
+        return (
+          <TouchableOpacity
+            key={s}
+            style={[styles.scopeTab, active && styles.scopeTabActive]}
+            onPress={() => setScope(s)}
+            activeOpacity={0.85}>
+            <Text style={styles.scopeIcon}>{s === 'personal' ? '🔒' : '👨‍👩‍👧'}</Text>
+            <Text
+              style={[
+                styles.scopeText,
+                active && styles.scopeTextActive,
+              ]}>
+              {t(`expenses.scope.${s}`, {
+                defaultValue: s === 'personal' ? 'Personal' : 'Shared',
+              })}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
   const renderBudgets = () => {
     if (budgets.length === 0) return null;
     return (
@@ -863,6 +908,8 @@ export default function ExpensesScreen() {
         </View>
         {renderPeriodSwitcher()}
       </View>
+
+      {renderScopeSwitcher()}
 
       {loading ? (
         <View style={styles.loadingState}>
@@ -1132,6 +1179,39 @@ const styles = StyleSheet.create({
   },
   periodChipTextActive: {
     color: colors.white,
+  },
+  scopeSwitcher: {
+    flexDirection: 'row',
+    marginHorizontal: spacing[4],
+    marginTop: spacing[3],
+    backgroundColor: colors.background.default,
+    borderRadius: borderRadius.full,
+    padding: 4,
+    gap: spacing[1],
+  },
+  scopeTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+  },
+  scopeTabActive: {
+    backgroundColor: colors.background.paper,
+    ...shadows.sm,
+  },
+  scopeIcon: {
+    fontSize: 14,
+  },
+  scopeText: {
+    ...typography.bodySmall,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  scopeTextActive: {
+    color: colors.primary[600],
   },
   scrollView: {
     flex: 1,

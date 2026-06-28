@@ -21,6 +21,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {initDatabase} from './db/database';
 import {startAutoSync, syncNow, markAllLocalDirty} from './sync/syncEngine';
 import {useAuthStore} from './store/authStore';
+import {
+  startNotificationCenter,
+  stopNotificationCenter,
+  pokeNotificationCenter,
+} from './services/notificationCenter';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -93,6 +98,7 @@ function App() {
     const appStateSub = AppState.addEventListener('change', (next) => {
       if (next === 'active') {
         void syncNow();
+        pokeNotificationCenter();
       }
     });
 
@@ -101,6 +107,32 @@ function App() {
       unsubHydrate?.();
       unsubFamily();
       appStateSub.remove();
+    };
+  }, []);
+
+  // Phone notifications (no Firebase) — driven by our own usrah-api over a
+  // WebSocket + polling. Runs while signed in, stops on sign-out.
+  useEffect(() => {
+    const refresh = () => {
+      if (useAuthStore.getState().token) {
+        void startNotificationCenter();
+      } else {
+        stopNotificationCenter();
+      }
+    };
+    if (useAuthStore.persist?.hasHydrated?.()) {
+      refresh();
+    }
+    const unsubHydrate = useAuthStore.persist?.onFinishHydration?.(refresh);
+    const unsubToken = useAuthStore.subscribe((s, prev) => {
+      if (s.token !== prev.token) {
+        refresh();
+      }
+    });
+    return () => {
+      unsubHydrate?.();
+      unsubToken();
+      stopNotificationCenter();
     };
   }, []);
 
