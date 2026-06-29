@@ -4,6 +4,7 @@
 
 import {TFunction} from 'i18next';
 import {ReactionType} from '../../services/api/social.service';
+import {formatDate} from '../../utils/datetime';
 
 /** Sum all reaction counts in a reactions_summary map. */
 export function sumReactions(
@@ -36,5 +37,5 @@ export function formatRelativeTime(iso: string | undefined, t: TFunction): strin
   const diffDay = Math.floor(diffHour / 24);
   if (diffDay <= 30) return t('social.daysAgo', {count: diffDay});
 
-  return new Date(iso).toLocaleDateString();
+  return formatDate(iso);
 }

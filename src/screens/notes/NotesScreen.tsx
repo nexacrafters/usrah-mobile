@@ -36,6 +36,7 @@ import notesService, {
 import {getCurrentFamilyId, useAuthStore} from '../../store/authStore';
 import {showAlert, showConfirm} from '../../store/dialogStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 /** Format an ISO timestamp into a short relative-ish label. */
 function formatWhen(iso: string): string {
@@ -60,7 +61,7 @@ function formatWhen(iso: string): string {
   if (days < 7) {
     return `${days}d`;
   }
-  return d.toLocaleDateString();
+  return formatDate(d);
 }
 
 interface EditorState {

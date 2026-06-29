@@ -25,6 +25,7 @@ import forumService, {
   authorAvatar,
 } from '../../services/api/forum.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 /** Lightweight relative-time formatter (no extra deps). */
 const timeAgo = (iso?: string): string => {
@@ -41,7 +42,7 @@ const timeAgo = (iso?: string): string => {
   if (days < 7) return `${days}d`;
   const weeks = Math.floor(days / 7);
   if (weeks < 5) return `${weeks}w`;
-  return new Date(iso).toLocaleDateString();
+  return formatDate(iso);
 };
 
 const ALL = '__all__';

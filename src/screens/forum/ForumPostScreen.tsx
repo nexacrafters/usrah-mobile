@@ -28,6 +28,7 @@ import forumService, {
   authorAvatar,
 } from '../../services/api/forum.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 type PostRoute = RouteProp<{params: {id: string}}, 'params'>;
 
@@ -43,7 +44,7 @@ const timeAgo = (iso?: string): string => {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Date(iso).toLocaleDateString();
+  return formatDate(iso);
 };
 
 export default function ForumPostScreen() {

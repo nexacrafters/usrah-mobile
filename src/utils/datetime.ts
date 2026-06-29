@@ -2,16 +2,30 @@
  * Locale-aware date/time formatting.
  *
  * Honours the app's selected language (not the device locale), so dates show
- * Arabic month/weekday names when the app is in Arabic — while keeping Western
- * digits (0-9) via the `-nu-latn` Unicode extension, which is the project's
- * established numbering preference. Money is formatted elsewhere with 'en-US'
- * on purpose (Western digits) and is unaffected by this.
+ * Arabic month/weekday names when the app is in Arabic — while keeping the
+ * 0-9 numerals via the `-nu-latn` Unicode extension. Those 0-9 glyphs are the
+ * original Hindu-Arabic (Ghubar) numerals transmitted by al-Khwārizmī; the app
+ * uses them everywhere and never the Eastern-Arabic ٠-٩ forms. Money is
+ * formatted elsewhere with the same 0-9 numerals and is unaffected by this.
  */
 import i18n from '../../i18n';
 
-/** BCP-47 tag for the active app language, forcing Western digits. */
+/** BCP-47 tag for the active app language, forcing the 0-9 numerals. */
 export function localeTag(): string {
   return i18n.language?.startsWith('ar') ? 'ar-u-nu-latn' : 'en-US';
+}
+
+/**
+ * Force the original Arabic (al-Khwārizmī / Hindu-Arabic) 0-9 numerals: map any
+ * Eastern Arabic-Indic (٠-٩) or Persian (۰-۹) digits back to 0-9, in case the
+ * JS engine ignores the `-nu-latn` locale hint. The app uses 0-9 everywhere.
+ */
+export function normalizeDigits(s: string): string {
+  return s.replace(/[٠-٩۰-۹]/g, (ch) => {
+    const code = ch.charCodeAt(0);
+    const base = code >= 0x06f0 ? 0x06f0 : 0x0660;
+    return String(code - base);
+  });
 }
 
 const safe = <T>(fn: () => T, fallback: T): T => {
@@ -30,7 +44,9 @@ export function formatDate(
   if (Number.isNaN(d.getTime())) {
     return '';
   }
-  return safe(() => d.toLocaleDateString(localeTag(), options), d.toDateString());
+  return normalizeDigits(
+    safe(() => d.toLocaleDateString(localeTag(), options), d.toDateString()),
+  );
 }
 
 export function formatTime(
@@ -41,5 +57,5 @@ export function formatTime(
   if (Number.isNaN(d.getTime())) {
     return '';
   }
-  return safe(() => d.toLocaleTimeString(localeTag(), options), '');
+  return normalizeDigits(safe(() => d.toLocaleTimeString(localeTag(), options), ''));
 }

@@ -820,7 +820,7 @@ export default {
     stats: {
       streak: 'أيام متتالية',
       completion: 'الإنجاز',
-      missed: 'الفائتة (٣٠ يوم)',
+      missed: 'الفائتة (30 يوم)',
     },
     location: 'الموقع',
     locationNote: 'تُحسب مواقيت الصلاة لمدينة {{city}} باستخدام طريقة {{method}}.',
@@ -1104,7 +1104,7 @@ export default {
   hifz: {
     title: 'الحفظ',
     titlePlaceholder: 'العنوان (مثال: سورة الملك)',
-    refPlaceholder: 'المرجع (مثال: ٦٧:١-٣٠)',
+    refPlaceholder: 'المرجع (مثال: 67:1-30)',
     add: 'إضافة',
     empty: 'لا شيء بعد. أضف ما تحفظه.',
     dueToday: 'مستحق للمراجعة',
