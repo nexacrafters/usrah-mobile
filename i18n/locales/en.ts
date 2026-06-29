@@ -996,6 +996,7 @@ export default {
     habitsToday: 'Habits today',
     toRevise: 'To revise',
     tapToLogPrayer: 'Tap a prayer to log it · hold for missed',
+    todayInIslam: 'Today in Islam',
     quickLinks: 'Quick Links',
     tasks: 'Tasks',
     expenses: 'Expenses',
@@ -1116,6 +1117,11 @@ export default {
     taskTitle: 'Task due',
     revisionTitle: 'Revision due',
     revisionBody: '{{count}} to revise today',
+  },
+  sunnahDay: {
+    title: 'Today in Islam',
+    none: 'No special recommendations today.',
+    disclaimer: 'Guidance surfaced from the Hijri date — follow your local moon sighting and scholars.',
   },
   cashflow: {
     title: 'Cash Flow',

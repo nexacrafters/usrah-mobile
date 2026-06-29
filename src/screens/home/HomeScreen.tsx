@@ -29,6 +29,7 @@ import taskService from '../../services/api/task.service';
 import expenseService from '../../services/api/expense.service';
 import habitService from '../../services/api/habit.service';
 import memorizationService from '../../services/api/memorization.service';
+import sunnahService, {SunnahToday} from '../../services/api/sunnah.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 
 /** Compact money formatter — 0-9 numerals, no decimals for the dashboard. */
@@ -89,6 +90,7 @@ export default function HomeScreen() {
   const [habitsDone, setHabitsDone] = useState(0);
   const [habitsTotal, setHabitsTotal] = useState(0);
   const [reviseDue, setReviseDue] = useState(0);
+  const [sunnah, setSunnah] = useState<SunnahToday | null>(null);
 
   const load = useCallback(async () => {
     await fetchPrayerTimes();
@@ -122,6 +124,11 @@ export default function HomeScreen() {
     try {
       const due = await memorizationService.due();
       setReviseDue(due.length);
+    } catch {
+      /* best-effort */
+    }
+    try {
+      setSunnah(await sunnahService.today());
     } catch {
       /* best-effort */
     }
@@ -250,6 +257,24 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.prayerStripHint}>{t('home.tapToLogPrayer', {defaultValue: 'Tap a prayer to log it · hold for missed'})}</Text>
           </>
+        )}
+
+        {/* Today in Islam — sunnah of the day from the Hijri date */}
+        {sunnah && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => safeNavigate('Sunnah')}
+            style={styles.sunnahCard}>
+            <View style={styles.sunnahHeader}>
+              <Text style={styles.sunnahTitle}>🌙 {t('home.todayInIslam', {defaultValue: 'Today in Islam'})}</Text>
+              <Text style={styles.sunnahDate}>{sunnah.hijri.formatted}</Text>
+            </View>
+            {sunnah.items.slice(0, 3).map((it) => (
+              <Text key={it.id} style={styles.sunnahItem} numberOfLines={1}>
+                • {isAr ? it.title_ar : it.title_en}
+              </Text>
+            ))}
+          </TouchableOpacity>
         )}
 
         {/* Tasks Snapshot */}
@@ -527,6 +552,23 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
   },
+  sunnahCard: {
+    backgroundColor: colors.primary[50],
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+    padding: spacing[4],
+    marginBottom: spacing[6],
+  },
+  sunnahHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[2],
+  },
+  sunnahTitle: {...typography.bodyMedium, color: colors.primary[700], fontWeight: '700'},
+  sunnahDate: {...typography.caption, color: colors.primary[600]},
+  sunnahItem: {...typography.bodySmall, color: colors.text.secondary, marginTop: 2},
   dashRow: {
     flexDirection: 'row',
     gap: spacing[3],

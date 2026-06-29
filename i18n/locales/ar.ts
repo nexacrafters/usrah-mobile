@@ -979,6 +979,7 @@ export default {
     habitsToday: 'عادات اليوم',
     toRevise: 'للمراجعة',
     tapToLogPrayer: 'اضغط على صلاة لتسجيلها · مطوّلًا للفائتة',
+    todayInIslam: 'يومك الإسلامي',
     quickLinks: 'روابط سريعة',
     tasks: 'المهام',
     expenses: 'المصروفات',
@@ -1099,6 +1100,11 @@ export default {
     taskTitle: 'مهمة مستحقة',
     revisionTitle: 'مراجعة مستحقة',
     revisionBody: '{{count}} للمراجعة اليوم',
+  },
+  sunnahDay: {
+    title: 'يومك الإسلامي',
+    none: 'لا توجد أعمال مخصوصة اليوم.',
+    disclaimer: 'إرشاد مبني على التاريخ الهجري — اتبع رؤية الهلال المحلية وأهل العلم.',
   },
   cashflow: {
     title: 'التدفق النقدي',
