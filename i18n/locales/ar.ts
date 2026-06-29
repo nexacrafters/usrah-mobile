@@ -1083,6 +1083,13 @@ export default {
       other: 'أخرى',
     },
   },
+  reminders: {
+    prayerTitle: 'وقت الصلاة',
+    prayerBody: 'حان وقت {{name}}',
+    taskTitle: 'مهمة مستحقة',
+    revisionTitle: 'مراجعة مستحقة',
+    revisionBody: '{{count}} للمراجعة اليوم',
+  },
   cashflow: {
     title: 'التدفق النقدي',
     entryHint: 'الأشهر والمتوسطات ومدى التغطية — للدخل المتغيّر',

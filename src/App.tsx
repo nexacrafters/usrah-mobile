@@ -27,6 +27,7 @@ import {
   pokeNotificationCenter,
 } from './services/notificationCenter';
 import {useSettingsStore} from './store/settingsStore';
+import {scheduleReminders} from './services/reminders';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -102,8 +103,12 @@ function App() {
       if (next === 'active') {
         void syncNow();
         pokeNotificationCenter();
+        void scheduleReminders();
       }
     });
+
+    // Schedule local reminders shortly after launch.
+    void scheduleReminders();
 
     return () => {
       stopAutoSync();

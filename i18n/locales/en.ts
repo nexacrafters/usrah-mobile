@@ -1100,6 +1100,13 @@ export default {
       other: 'Other',
     },
   },
+  reminders: {
+    prayerTitle: 'Prayer time',
+    prayerBody: "It's time for {{name}}",
+    taskTitle: 'Task due',
+    revisionTitle: 'Revision due',
+    revisionBody: '{{count}} to revise today',
+  },
   cashflow: {
     title: 'Cash Flow',
     entryHint: 'Months, averages & runway — for variable income',
