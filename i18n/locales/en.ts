@@ -1142,6 +1142,11 @@ export default {
   preferences: {
     title: 'Preferences',
     subtitle: 'Features, finance mode, currency',
+    household: 'Household',
+    household_individual: 'Individual',
+    household_married: 'Married',
+    household_family: 'Family',
+    householdHint: 'Sets sensible defaults — on your own hides family-only features; married enables masrouf.',
     financeMode: 'Finance mode',
     financeModeHint: 'Business mode is built for irregular income — averages, cash-flow and runway instead of a fixed salary.',
     mode_salary: 'Salary',

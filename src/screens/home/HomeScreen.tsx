@@ -4,7 +4,7 @@
  * and quick links. Loads live data on focus with pull-to-refresh.
  */
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -82,7 +82,15 @@ export default function HomeScreen() {
   const {setTasks} = useTaskStore();
   const tasks = useTaskStore((s) => s.tasks);
 
-  const enabledModules = useSettingsStore((s) => s.modules.filter((m) => m.enabled));
+  // Select the STABLE array reference, then derive — returning a fresh
+  // `.filter()` array straight from the selector causes an infinite render
+  // loop ("Maximum update depth exceeded") because zustand sees a new value
+  // every render.
+  const modules = useSettingsStore((s) => s.modules);
+  const enabledModules = useMemo(
+    () => modules.filter((m) => m.enabled),
+    [modules],
+  );
   const isAr = i18n.language?.startsWith('ar');
 
   const [refreshing, setRefreshing] = useState(false);

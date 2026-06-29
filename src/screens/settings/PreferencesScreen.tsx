@@ -22,6 +22,7 @@ import {useSettingsStore} from '../../store/settingsStore';
 import i18n from '../../../i18n';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
+const HOUSEHOLD_TYPES = ['individual', 'married', 'family'] as const;
 const FINANCE_MODES = ['salary', 'business'] as const;
 const MADHHABS = ['standard', 'hanafi'] as const;
 
@@ -65,6 +66,31 @@ export default function PreferencesScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {/* Household type — Individual / Married / Family */}
+        <Text style={styles.section}>{t('preferences.household', {defaultValue: 'Household'})}</Text>
+        <View style={styles.segment}>
+          {HOUSEHOLD_TYPES.map((h) => {
+            const active = (family.household_type || 'family') === h;
+            return (
+              <TouchableOpacity
+                key={h}
+                style={[styles.segTab, active && styles.segTabOn]}
+                onPress={() => setFamily({household_type: h})}>
+                <Text style={[styles.segText, active && styles.segTextOn]}>
+                  {t(`preferences.household_${h}`, {
+                    defaultValue: h === 'individual' ? 'Individual' : h === 'married' ? 'Married' : 'Family',
+                  })}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={styles.hint}>
+          {t('preferences.householdHint', {
+            defaultValue: 'Sets sensible defaults — on your own hides family-only features; married enables masrouf.',
+          })}
+        </Text>
+
         {/* Finance mode */}
         <Text style={styles.section}>{t('preferences.financeMode', {defaultValue: 'Finance mode'})}</Text>
         <View style={styles.segment}>

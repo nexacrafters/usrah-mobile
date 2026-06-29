@@ -62,6 +62,7 @@ export type AppStackParamList = {
   CashFlow: undefined;
   Reports: undefined;
   Sunnah: undefined;
+  Fasting: undefined;
 };
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> =

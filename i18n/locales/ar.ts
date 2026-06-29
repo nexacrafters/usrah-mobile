@@ -1125,6 +1125,11 @@ export default {
   preferences: {
     title: 'الإعدادات',
     subtitle: 'الميزات، نمط المالية، العملة',
+    household: 'نوع الأسرة',
+    household_individual: 'فرد',
+    household_married: 'متزوّج',
+    household_family: 'أسرة',
+    householdHint: 'يضبط إعدادات افتراضية مناسبة — الفرد يُخفي ميزات الأسرة، والمتزوّج يُفعّل المصروف.',
     financeMode: 'نمط المالية',
     financeModeHint: 'نمط الأعمال مُصمَّم للدخل المتغيّر — متوسطات وتدفق نقدي ومدى تغطية بدل راتب ثابت.',
     mode_salary: 'راتب',
