@@ -496,6 +496,43 @@ export default function AddExpenseScreen({
               </View>
             </LinearGradient>
 
+            {/* Personal (private) money toggle — kept near the top so it's not
+                buried; flips this whole transaction to the member's private stash. */}
+            <TouchableOpacity
+              style={[
+                styles.recurringRow,
+                isPrivate && {
+                  backgroundColor: accent + '14',
+                  borderColor: accent,
+                },
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setIsPrivate((v) => !v)}>
+              <View
+                style={[styles.recurringIcon, {backgroundColor: accent + '22'}]}>
+                <Icon name="lock" size={18} color={accent} />
+              </View>
+              <View style={styles.recurringTextWrap}>
+                <Text style={styles.recurringTitle}>
+                  {t('expenses.privateMoney', {defaultValue: 'Personal money'})}
+                </Text>
+                <Text style={styles.recurringHint}>
+                  {t('expenses.privateMoneyHint', {
+                    defaultValue: 'Only you can see this — hidden from the family',
+                  })}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.recurringCheck,
+                  isPrivate
+                    ? {backgroundColor: accent, borderColor: accent}
+                    : {borderColor: colors.border.dark},
+                ]}>
+                {isPrivate && <Icon name="check" size={16} color={colors.white} />}
+              </View>
+            </TouchableOpacity>
+
             {/* Category picker */}
             <View style={styles.section}>
               <View style={styles.sectionHeaderRow}>
@@ -720,43 +757,6 @@ export default function AddExpenseScreen({
                 {recurring && (
                   <Icon name="check" size={16} color={colors.white} />
                 )}
-              </View>
-            </TouchableOpacity>
-
-            {/* Personal (private) money toggle */}
-            <TouchableOpacity
-              style={[
-                styles.recurringRow,
-                {marginTop: spacing[3]},
-                isPrivate && {
-                  backgroundColor: accent + '14',
-                  borderColor: accent,
-                },
-              ]}
-              activeOpacity={0.8}
-              onPress={() => setIsPrivate((v) => !v)}>
-              <View
-                style={[styles.recurringIcon, {backgroundColor: accent + '22'}]}>
-                <Icon name="lock" size={18} color={accent} />
-              </View>
-              <View style={styles.recurringTextWrap}>
-                <Text style={styles.recurringTitle}>
-                  {t('expenses.privateMoney', {defaultValue: 'Personal money'})}
-                </Text>
-                <Text style={styles.recurringHint}>
-                  {t('expenses.privateMoneyHint', {
-                    defaultValue: 'Only you can see this — hidden from the family',
-                  })}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.recurringCheck,
-                  isPrivate
-                    ? {backgroundColor: accent, borderColor: accent}
-                    : {borderColor: colors.border.dark},
-                ]}>
-                {isPrivate && <Icon name="check" size={16} color={colors.white} />}
               </View>
             </TouchableOpacity>
 
