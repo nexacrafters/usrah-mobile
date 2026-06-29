@@ -29,6 +29,7 @@ import {useTranslation} from 'react-i18next';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 import expenseService from '../../services/api/expense.service';
 import incomeService from '../../services/api/income.service';
 import savingsService from '../../services/api/savings.service';
@@ -135,11 +136,7 @@ const groupLabel = (
     a.getDate() === b.getDate();
   if (sameDay(d, today)) return todayLabel;
   if (sameDay(d, yesterday)) return yesterdayLabel;
-  return d.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+  return formatDate(d, {weekday: 'short', month: 'short', day: 'numeric'});
 };
 
 interface DateGroup {

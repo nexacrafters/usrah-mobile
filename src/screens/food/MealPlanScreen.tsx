@@ -19,6 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import mealPlanService, {MealPlan, MealType} from '../../services/api/mealplan.service';
 import {colors, spacing, typography, borderRadius} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 const MEAL_TYPES: Array<{id: MealType; icon: string}> = [
   {id: 'breakfast', icon: '🌅'},
@@ -95,8 +96,7 @@ export default function MealPlanScreen() {
     }
   };
 
-  const dayLabel = (d: Date) =>
-    d.toLocaleDateString(undefined, {weekday: 'short'});
+  const dayLabel = (d: Date) => formatDate(d, {weekday: 'short'});
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

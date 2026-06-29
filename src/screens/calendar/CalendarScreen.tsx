@@ -22,6 +22,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import calendarService, {CalendarEvent} from '../../services/api/calendar.service';
 import {getCurrentFamilyId} from '../../store/authStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 type Section = {key: string; title: string; data: CalendarEvent[]};
 
@@ -48,11 +49,7 @@ const formatDayHeading = (iso: string): string => {
   // iso is YYYY-MM-DD; parse as local date
   const [y, m, d] = iso.split('-').map((n) => parseInt(n, 10));
   const date = new Date(y, (m || 1) - 1, d || 1);
-  return date.toLocaleDateString(undefined, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  });
+  return formatDate(date, {weekday: 'short', day: 'numeric', month: 'short'});
 };
 
 export default function CalendarScreen() {

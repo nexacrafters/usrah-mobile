@@ -33,6 +33,7 @@ import documentsService, {
 } from '../../services/api/documents.service';
 import {getCurrentFamilyId} from '../../store/authStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import {formatDate as formatDateLocale} from '../../utils/datetime';
 
 /** Map a server file_type bucket to an icon + accent color. */
 function fileTypeVisual(type: string): {icon: string; color: string} {
@@ -59,11 +60,7 @@ function fileTypeVisual(type: string): {icon: string; color: string} {
 }
 
 function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) {
-    return '';
-  }
-  return d.toLocaleDateString();
+  return formatDateLocale(iso);
 }
 
 export default function DocumentsScreen() {

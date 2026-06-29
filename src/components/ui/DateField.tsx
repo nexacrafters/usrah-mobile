@@ -11,6 +11,7 @@ import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {useTranslation} from 'react-i18next';
 import {colors, spacing, typography, borderRadius} from '../../theme';
+import {formatDate} from '../../utils/datetime';
 
 interface DateFieldProps {
   label?: string;
@@ -57,8 +58,7 @@ export default function DateField({
     if (mode === 'time') {
       return value;
     }
-    const d = toDate(value, mode);
-    return d.toLocaleDateString(undefined, {
+    return formatDate(toDate(value, mode), {
       weekday: 'short',
       day: 'numeric',
       month: 'short',

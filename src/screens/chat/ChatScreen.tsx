@@ -24,6 +24,7 @@ import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 import {useAuthStore} from '../../store/authStore';
 import chatService, {Message} from '../../services/api/chat.service';
 import {ChatSocket, SocketIncomingMessage} from '../../services/chatSocket';
+import {formatTime} from '../../utils/datetime';
 
 /** A message decorated with view-only fields (mine flag + sending state). */
 interface ChatMessage extends Message {
@@ -176,19 +177,6 @@ export default function ChatScreen() {
     typingClearRef.current = setTimeout(() => socket.sendTyping(false), 2000);
   };
 
-  const formatTime = (timestamp?: string) => {
-    if (!timestamp) {
-      return '';
-    }
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) {
-      return '';
-    }
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   const handleSend = async () => {
     const content = inputText.trim();
