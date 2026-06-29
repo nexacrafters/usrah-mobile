@@ -540,6 +540,23 @@ export default function ExpensesScreen() {
         <Text style={styles.cashflowChevron}>›</Text>
       </TouchableOpacity>
 
+      {/* Reports & export */}
+      <TouchableOpacity
+        style={styles.cashflowRow}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('Reports')}>
+        <Icon name="file-chart-outline" size={20} color={colors.primary[600]} />
+        <View style={{flex: 1, marginLeft: spacing[3]}}>
+          <Text style={styles.cashflowTitle}>
+            {t('reports.title', {defaultValue: 'Reports & Export'})}
+          </Text>
+          <Text style={styles.cashflowSub}>
+            {t('reports.entryHint', {defaultValue: 'Monthly report · export every penny (CSV)'})}
+          </Text>
+        </View>
+        <Text style={styles.cashflowChevron}>›</Text>
+      </TouchableOpacity>
+
       {/* Income / Expenses / Safe breakdown. */}
       <View style={styles.statRow}>
         <View style={[styles.statCard, styles.statIncome]}>

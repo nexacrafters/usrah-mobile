@@ -1083,6 +1083,16 @@ export default {
       other: 'أخرى',
     },
   },
+  reports: {
+    title: 'التقارير والتصدير',
+    entryHint: 'تقرير شهري · صدّر كل مليم (CSV)',
+    net: 'الصافي',
+    byCategory: 'الإنفاق حسب الفئة',
+    uncategorized: 'بدون فئة',
+    noData: 'لا إنفاق هذا الشهر.',
+    shareReport: 'مشاركة التقرير',
+    exportCsv: 'تصدير الكل (CSV)',
+  },
   reminders: {
     prayerTitle: 'وقت الصلاة',
     prayerBody: 'حان وقت {{name}}',

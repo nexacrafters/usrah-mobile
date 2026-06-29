@@ -1100,6 +1100,16 @@ export default {
       other: 'Other',
     },
   },
+  reports: {
+    title: 'Reports & Export',
+    entryHint: 'Monthly report · export every penny (CSV)',
+    net: 'Net',
+    byCategory: 'Spending by category',
+    uncategorized: 'Uncategorized',
+    noData: 'No spending this month.',
+    shareReport: 'Share report',
+    exportCsv: 'Export all (CSV)',
+  },
   reminders: {
     prayerTitle: 'Prayer time',
     prayerBody: "It's time for {{name}}",

@@ -49,6 +49,7 @@ import MemorizationScreen from '../screens/habits/MemorizationScreen';
 import MasroufScreen from '../screens/finance/MasroufScreen';
 import PreferencesScreen from '../screens/settings/PreferencesScreen';
 import CashFlowScreen from '../screens/finance/CashFlowScreen';
+import ReportsScreen from '../screens/finance/ReportsScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -116,6 +117,7 @@ export default function AppStackNavigator() {
       <Stack.Screen name="Masrouf" component={MasroufScreen} />
       <Stack.Screen name="Preferences" component={PreferencesScreen} />
       <Stack.Screen name="CashFlow" component={CashFlowScreen} />
+      <Stack.Screen name="Reports" component={ReportsScreen} />
     </Stack.Navigator>
   );
 }
