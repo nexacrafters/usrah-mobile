@@ -63,6 +63,7 @@ export type AppStackParamList = {
   Reports: undefined;
   Sunnah: undefined;
   Fasting: undefined;
+  Muhasaba: undefined;
 };
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> =

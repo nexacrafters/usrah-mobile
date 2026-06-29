@@ -20,6 +20,7 @@ import {useTranslation} from 'react-i18next';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showConfirm} from '../../store/dialogStore';
+import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
 import pantryService, {
   PantryItem,
   PantryCategory,
@@ -200,10 +201,7 @@ export default function PantryScreen() {
         {loading && items.length === 0 ? (
           <ActivityIndicator style={{marginTop: spacing[8]}} color={colors.primary[500]} />
         ) : visible.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🧺</Text>
-            <Text style={styles.emptyText}>{t('pantry.empty')}</Text>
-          </View>
+          <IslamicEmptyState icon="🧺" message={t('pantry.empty')} />
         ) : (
           grouped.map(([cat, list]) => (
             <View key={cat} style={styles.group}>

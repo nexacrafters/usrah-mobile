@@ -20,6 +20,7 @@ import {useTranslation} from 'react-i18next';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showConfirm} from '../../store/dialogStore';
+import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
 import habitService, {Habit, HabitCategory} from '../../services/api/habit.service';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
@@ -201,10 +202,7 @@ export default function HabitsScreen() {
         {loading && habits.length === 0 ? (
           <ActivityIndicator style={{marginTop: spacing[8]}} color={colors.primary[500]} />
         ) : habits.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🌱</Text>
-            <Text style={styles.emptyText}>{t('habits.empty')}</Text>
-          </View>
+          <IslamicEmptyState icon="🌱" message={t('habits.empty')} />
         ) : (
           habits.map((h) => {
             const count = h.today_count ?? 0;

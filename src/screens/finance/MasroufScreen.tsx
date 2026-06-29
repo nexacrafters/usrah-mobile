@@ -22,6 +22,7 @@ import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
 import {showConfirm, showAlert} from '../../store/dialogStore';
 import {useFamilyStore, FamilyMember} from '../../store/familyStore';
+import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
 import {getCurrentFamilyId} from '../../store/authStore';
 import masroufService, {Masrouf} from '../../services/api/masrouf.service';
 import familyService from '../../services/api/family.service';
@@ -180,10 +181,7 @@ export default function MasroufScreen() {
         {loading && items.length === 0 ? (
           <ActivityIndicator style={{marginTop: spacing[8]}} color={colors.primary[500]} />
         ) : items.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>💝</Text>
-            <Text style={styles.emptyText}>{t('masrouf.empty')}</Text>
-          </View>
+          <IslamicEmptyState icon="💝" message={t('masrouf.empty')} />
         ) : (
           items.map((item) => (
             <View key={item.public_id} style={styles.card}>

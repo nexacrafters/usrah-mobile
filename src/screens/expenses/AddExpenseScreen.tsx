@@ -161,6 +161,7 @@ export default function AddExpenseScreen({
 
   // Inline category creation
   const [creatingCategory, setCreatingCategory] = useState(false);
+  const [categorySearch, setCategorySearch] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
 
@@ -197,11 +198,20 @@ export default function AddExpenseScreen({
     [categories, type],
   );
 
-  // Top-level categories (no parent) are the primary chips.
-  const topCategories = useMemo(
-    () => visibleCategories.filter((c) => !c.parent),
-    [visibleCategories],
-  );
+  // Top-level categories (no parent) are the primary chips — filtered by the
+  // search box so a long list is a quick type-to-find, not a crowded grid.
+  const topCategories = useMemo(() => {
+    const tops = visibleCategories.filter((c) => !c.parent);
+    const q = categorySearch.trim().toLowerCase();
+    if (!q) {
+      return tops;
+    }
+    return tops.filter(
+      (c) =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.name_ar || '').includes(categorySearch.trim()),
+    );
+  }, [visibleCategories, categorySearch]);
 
   // Subcategories of the currently-selected parent (a second chip row).
   const subCategories = useMemo(
@@ -576,9 +586,21 @@ export default function AddExpenseScreen({
                 </View>
               )}
 
+              {!creatingCategory && (
+                <Input
+                  placeholder={t('expenses.searchCategory', {defaultValue: 'Search category…'})}
+                  value={categorySearch}
+                  onChangeText={setCategorySearch}
+                  leftIcon={<Icon name="magnify" size={18} color={colors.text.tertiary} />}
+                  containerStyle={styles.fieldContainer}
+                />
+              )}
+
               {topCategories.length === 0 && !creatingCategory ? (
                 <Text style={styles.emptyCategories}>
-                  {t('expenses.noCategoriesYet')}
+                  {categorySearch.trim()
+                    ? t('expenses.noCategoryMatch', {defaultValue: 'No matching category'})
+                    : t('expenses.noCategoriesYet')}
                 </Text>
               ) : (
                 <View style={styles.categoriesGrid}>

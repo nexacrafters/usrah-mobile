@@ -18,6 +18,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import fastingService, {FastingLog, FastType} from '../../services/api/fasting.service';
+import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
 import {formatDate} from '../../utils/datetime';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
@@ -131,7 +132,7 @@ export default function FastingScreen() {
 
           <Text style={styles.section}>{t('fasting.recent', {defaultValue: 'Recent fasts'})}</Text>
           {logs.length === 0 ? (
-            <Text style={styles.empty}>{t('fasting.empty', {defaultValue: 'No fasts logged yet.'})}</Text>
+            <IslamicEmptyState icon="🌙" message={t('fasting.empty')} />
           ) : (
             <View style={styles.card}>
               {logs.slice(0, 30).map((l, i) => (

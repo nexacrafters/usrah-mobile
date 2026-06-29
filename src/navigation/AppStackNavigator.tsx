@@ -52,6 +52,7 @@ import CashFlowScreen from '../screens/finance/CashFlowScreen';
 import ReportsScreen from '../screens/finance/ReportsScreen';
 import SunnahScreen from '../screens/islamic/SunnahScreen';
 import FastingScreen from '../screens/islamic/FastingScreen';
+import MuhasabaScreen from '../screens/islamic/MuhasabaScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -122,6 +123,7 @@ export default function AppStackNavigator() {
       <Stack.Screen name="Reports" component={ReportsScreen} />
       <Stack.Screen name="Sunnah" component={SunnahScreen} />
       <Stack.Screen name="Fasting" component={FastingScreen} />
+      <Stack.Screen name="Muhasaba" component={MuhasabaScreen} />
     </Stack.Navigator>
   );
 }

@@ -20,6 +20,7 @@ import {useTranslation} from 'react-i18next';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showConfirm} from '../../store/dialogStore';
+import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
 import memorizationService, {
   Memorization,
   MemorizationType,
@@ -228,10 +229,7 @@ export default function MemorizationScreen() {
         {loading && items.length === 0 ? (
           <ActivityIndicator style={{marginTop: spacing[8]}} color={colors.primary[500]} />
         ) : items.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📖</Text>
-            <Text style={styles.emptyText}>{t('hifz.empty')}</Text>
-          </View>
+          <IslamicEmptyState icon="📖" message={t('hifz.empty')} />
         ) : (
           <>
             {due.length > 0 && (
