@@ -308,6 +308,18 @@ export default function ExpensesScreen() {
     [transactions, scope],
   );
 
+  // All-time private stash balance (private income − private spending). Shown
+  // prominently in Personal mode so the member sees what they have to spend.
+  const stashBalance = useMemo(() => {
+    if (scope !== 'personal') {
+      return 0;
+    }
+    return scopedTransactions.reduce(
+      (sum, tx) => sum + (tx.type === 'income' ? 1 : -1) * toNumber(tx.amount),
+      0,
+    );
+  }, [scopedTransactions, scope]);
+
   const groups = useMemo(() => {
     // Show only transactions inside the selected period (the switcher used to
     // change just the summary, leaving the whole history in the list).
@@ -908,6 +920,16 @@ export default function ExpensesScreen() {
 
       {renderScopeSwitcher()}
 
+      {scope === 'personal' && (
+        <View style={styles.stashCard}>
+          <Text style={styles.stashLabel}>🔒 {t('expenses.stashBalance', {defaultValue: 'My private stash'})}</Text>
+          <Text style={styles.stashValue}>
+            {stashBalance.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3})} {t('expenses.currencyTND', {defaultValue: 'TND'})}
+          </Text>
+          <Text style={styles.stashHint}>{t('expenses.stashHint', {defaultValue: 'Yours to spend freely — private to you.'})}</Text>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={colors.primary[500]} />
@@ -1210,6 +1232,17 @@ const styles = StyleSheet.create({
   scopeTextActive: {
     color: colors.primary[600],
   },
+  stashCard: {
+    marginHorizontal: spacing[4],
+    marginTop: spacing[3],
+    padding: spacing[5],
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary[500],
+    alignItems: 'center',
+  },
+  stashLabel: {...typography.caption, color: 'rgba(255,255,255,0.85)'},
+  stashValue: {...typography.h2, color: colors.white, fontWeight: '800', marginVertical: 2},
+  stashHint: {...typography.caption, color: 'rgba(255,255,255,0.85)'},
   scrollView: {
     flex: 1,
   },

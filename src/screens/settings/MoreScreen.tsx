@@ -95,6 +95,7 @@ export default function MoreScreen() {
     {id: 'pantry', title: t('pantry.title', {defaultValue: 'Kitchen Supplies'}), icon: 'fridge-outline', color: colors.islamic.alhamdulillah, onPress: () => navigation.navigate('Pantry')},
     {id: 'goals', title: t('goals.title', {defaultValue: 'Goals'}), icon: 'target', color: colors.gold[500], onPress: () => navigation.navigate('Goals')},
     {id: 'debts', title: t('debts.title', {defaultValue: 'Debts'}), icon: 'cash-multiple', color: colors.sand[600], onPress: () => navigation.navigate('Debts')},
+    {id: 'masrouf', title: t('masrouf.title', {defaultValue: 'Masrouf'}), icon: 'gift-outline', color: colors.islamic.barakallah, onPress: () => navigation.navigate('Masrouf')},
     {id: 'recurring', title: t('recurring.title', {defaultValue: 'Recurring'}), icon: 'repeat', color: colors.skyBlue[600], onPress: () => navigation.navigate('Recurring')},
     {id: 'calendar', title: t('calendar.title', {defaultValue: 'Calendar'}), icon: 'calendar-month', color: colors.skyBlue[500], onPress: () => navigation.navigate('Calendar')},
     {id: 'circle', title: t('social.title', {defaultValue: 'Family Feed'}), icon: 'heart-multiple', color: colors.islamic.mashallah, onPress: () => navigation.navigate('Circle')},

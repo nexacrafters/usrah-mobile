@@ -46,6 +46,7 @@ import MealPlanScreen from '../screens/food/MealPlanScreen';
 import PantryScreen from '../screens/food/PantryScreen';
 import HabitsScreen from '../screens/habits/HabitsScreen';
 import MemorizationScreen from '../screens/habits/MemorizationScreen';
+import MasroufScreen from '../screens/finance/MasroufScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -110,6 +111,7 @@ export default function AppStackNavigator() {
       <Stack.Screen name="Pantry" component={PantryScreen} />
       <Stack.Screen name="Habits" component={HabitsScreen} />
       <Stack.Screen name="Memorization" component={MemorizationScreen} />
+      <Stack.Screen name="Masrouf" component={MasroufScreen} />
     </Stack.Navigator>
   );
 }

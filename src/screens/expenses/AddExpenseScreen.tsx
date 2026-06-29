@@ -500,7 +500,7 @@ export default function AddExpenseScreen({
             <View style={styles.section}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionLabel}>
-                  {t('expenses.category')}
+                  {t('expenses.category')} ({t('common.optional', {defaultValue: 'optional'})})
                 </Text>
                 <TouchableOpacity
                   onPress={() => setCreatingCategory((v) => !v)}

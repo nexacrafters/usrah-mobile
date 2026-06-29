@@ -48,6 +48,14 @@ const QUICK_LINKS: Array<{
   {id: 'tasks', labelKey: 'home.tasks', icon: '✅', route: 'Tasks', color: colors.primary[500]},
   {id: 'expenses', labelKey: 'home.expenses', icon: '💰', route: 'Expenses', color: colors.gold[500]},
   {id: 'chat', labelKey: 'home.chat', icon: '💬', route: 'Chat', color: colors.skyBlue[500]},
+  {id: 'prayer', labelKey: 'prayer.title', icon: '🕌', route: 'Prayer', color: colors.islamic.mashallah},
+  {id: 'habits', labelKey: 'habits.title', icon: '🌱', route: 'Habits', color: colors.islamic.mashallah},
+  {id: 'hifz', labelKey: 'hifz.title', icon: '📖', route: 'Memorization', color: colors.gold[600]},
+  {id: 'mealplan', labelKey: 'mealPlan.title', icon: '🍽️', route: 'MealPlan', color: colors.gold[600]},
+  {id: 'pantry', labelKey: 'pantry.title', icon: '🧺', route: 'Pantry', color: colors.islamic.alhamdulillah},
+  {id: 'masrouf', labelKey: 'masrouf.title', icon: '🎁', route: 'Masrouf', color: colors.islamic.barakallah},
+  {id: 'calendar', labelKey: 'calendar.title', icon: '📅', route: 'Calendar', color: colors.skyBlue[500]},
+  {id: 'goals', labelKey: 'goals.title', icon: '🎯', route: 'Goals', color: colors.gold[500]},
   {id: 'more', labelKey: 'home.more', icon: '⋯', route: 'More', color: colors.islamic.barakallah},
 ];
 
