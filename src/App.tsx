@@ -26,6 +26,7 @@ import {
   stopNotificationCenter,
   pokeNotificationCenter,
 } from './services/notificationCenter';
+import {useSettingsStore} from './store/settingsStore';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -84,6 +85,8 @@ function App() {
         /* non-fatal */
       }
       void syncNow();
+      // Pull the config-driven module catalog + preferences.
+      void useSettingsStore.getState().load();
     };
     if (useAuthStore.persist?.hasHydrated?.()) {
       runSync();

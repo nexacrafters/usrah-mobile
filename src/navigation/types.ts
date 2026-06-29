@@ -58,6 +58,7 @@ export type AppStackParamList = {
   Habits: undefined;
   Memorization: undefined;
   Masrouf: undefined;
+  Preferences: undefined;
 };
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> =

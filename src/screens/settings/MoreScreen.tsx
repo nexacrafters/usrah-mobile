@@ -106,6 +106,7 @@ export default function MoreScreen() {
   ];
 
   const APP_SETTINGS: MenuItem[] = [
+    {id: 'preferences', title: t('preferences.title', {defaultValue: 'Preferences'}), icon: '⚙️', subtitle: t('preferences.subtitle', {defaultValue: 'Features, finance mode, currency'}), onPress: () => navigation.navigate('Preferences')},
     {id: 'notifications', title: t('settings.notifications'), icon: '🔔', subtitle: t('settings.notificationsSubtitle'), onPress: () => navigation.navigate('NotificationSettings')},
     {id: 'prayer', title: t('settings.prayerSettings'), icon: '🕌', subtitle: t('settings.prayerSettingsSubtitle'), onPress: () => navigation.navigate('Prayer')},
     {

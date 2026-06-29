@@ -18,12 +18,22 @@ import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Card from '../../components/ui/Card';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useAuthStore} from '../../store/authStore';
 import {usePrayerStore} from '../../store/prayerStore';
 import {useTaskStore} from '../../store/taskStore';
+import {useSettingsStore} from '../../store/settingsStore';
+import i18n from '../../../i18n';
 import {getCurrentFamilyId} from '../../store/authStore';
 import taskService from '../../services/api/task.service';
+import expenseService from '../../services/api/expense.service';
+import habitService from '../../services/api/habit.service';
+import memorizationService from '../../services/api/memorization.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+
+/** Compact money formatter — 0-9 numerals, no decimals for the dashboard. */
+const money = (n: number) =>
+  Math.round(n || 0).toLocaleString('en-US');
 
 const greetingKey = () => {
   const h = new Date().getHours();
@@ -67,7 +77,14 @@ export default function HomeScreen() {
   const {setTasks} = useTaskStore();
   const tasks = useTaskStore((s) => s.tasks);
 
+  const enabledModules = useSettingsStore((s) => s.modules.filter((m) => m.enabled));
+  const isAr = i18n.language?.startsWith('ar');
+
   const [refreshing, setRefreshing] = useState(false);
+  const [finance, setFinance] = useState<{income: number; spent: number} | null>(null);
+  const [habitsDone, setHabitsDone] = useState(0);
+  const [habitsTotal, setHabitsTotal] = useState(0);
+  const [reviseDue, setReviseDue] = useState(0);
 
   const load = useCallback(async () => {
     await fetchPrayerTimes();
@@ -78,9 +95,33 @@ export default function HomeScreen() {
       } catch {
         /* dashboard is best-effort */
       }
+      try {
+        const s = await expenseService.getSummary('month');
+        if (s) {
+          setFinance({income: s.total_income ?? 0, spent: s.total_expenses ?? 0});
+        }
+      } catch {
+        /* best-effort */
+      }
     } else {
       setTasks([]);
     }
+    // Habits + revision are personal (no family needed).
+    try {
+      const hs = await habitService.list();
+      setHabitsTotal(hs.length);
+      setHabitsDone(hs.filter((h) => h.completed_today).length);
+    } catch {
+      /* best-effort */
+    }
+    try {
+      const due = await memorizationService.due();
+      setReviseDue(due.length);
+    } catch {
+      /* best-effort */
+    }
+    // Refresh the config-driven module catalog.
+    void useSettingsStore.getState().load();
   }, [fetchPrayerTimes, setTasks]);
 
   useFocusEffect(
@@ -218,24 +259,73 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Quick Links */}
+        {/* Live summaries */}
+        <View style={styles.dashRow}>
+          <TouchableOpacity
+            style={styles.dashCard}
+            activeOpacity={0.85}
+            onPress={() => safeNavigate('Expenses')}>
+            <Text style={styles.dashIcon}>💰</Text>
+            <Text style={styles.dashValue} numberOfLines={1}>
+              {finance ? money(finance.income - finance.spent) : '—'}
+            </Text>
+            <Text style={styles.dashLabel}>{t('home.netThisMonth', {defaultValue: 'Net this month'})}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dashCard}
+            activeOpacity={0.85}
+            onPress={() => safeNavigate('Habits')}>
+            <Text style={styles.dashIcon}>🌱</Text>
+            <Text style={styles.dashValue}>
+              {habitsDone}/{habitsTotal}
+            </Text>
+            <Text style={styles.dashLabel}>{t('home.habitsToday', {defaultValue: 'Habits today'})}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dashCard}
+            activeOpacity={0.85}
+            onPress={() => safeNavigate('Memorization')}>
+            <Text style={styles.dashIcon}>📖</Text>
+            <Text style={[styles.dashValue, reviseDue > 0 && {color: colors.gold[600]}]}>
+              {reviseDue}
+            </Text>
+            <Text style={styles.dashLabel}>{t('home.toRevise', {defaultValue: 'To revise'})}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Links — rendered from the server module catalog so what shows
+            (and in what order) is config, not hardcoded. Falls back to the
+            static set before settings have loaded. */}
         <Text style={styles.sectionTitle}>{t('home.quickLinks')}</Text>
         <View style={styles.quickGrid}>
-          {QUICK_LINKS.map((link) => (
-            <TouchableOpacity
-              key={link.id}
-              style={styles.quickCard}
-              onPress={() => safeNavigate(link.route)}>
-              <View
-                style={[
-                  styles.quickIcon,
-                  {backgroundColor: link.color + '20'},
-                ]}>
-                <Text style={styles.quickEmoji}>{link.icon}</Text>
-              </View>
-              <Text style={styles.quickLabel}>{t(link.labelKey)}</Text>
-            </TouchableOpacity>
-          ))}
+          {enabledModules.length > 0
+            ? [
+                ...enabledModules.slice(0, 11),
+                {id: 'more', route: 'More', icon: 'dots-horizontal', name_en: 'More', name_ar: 'المزيد'},
+              ].map((m: any) => (
+                <TouchableOpacity
+                  key={m.id}
+                  style={styles.quickCard}
+                  onPress={() => safeNavigate(m.route)}>
+                  <View style={[styles.quickIcon, {backgroundColor: colors.primary[500] + '20'}]}>
+                    <Icon name={m.icon} size={22} color={colors.primary[600]} />
+                  </View>
+                  <Text style={styles.quickLabel} numberOfLines={1}>
+                    {isAr ? m.name_ar : m.name_en}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            : QUICK_LINKS.map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.quickCard}
+                  onPress={() => safeNavigate(link.route)}>
+                  <View style={[styles.quickIcon, {backgroundColor: link.color + '20'}]}>
+                    <Text style={styles.quickEmoji}>{link.icon}</Text>
+                  </View>
+                  <Text style={styles.quickLabel}>{t(link.labelKey)}</Text>
+                </TouchableOpacity>
+              ))}
         </View>
 
         {/* Islamic Quote */}
@@ -403,6 +493,33 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  dashRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginBottom: spacing[6],
+  },
+  dashCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[2],
+    backgroundColor: colors.background.paper,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  dashIcon: {fontSize: 22, marginBottom: spacing[1]},
+  dashValue: {
+    ...typography.h5,
+    color: colors.text.primary,
+    fontWeight: '800',
+  },
+  dashLabel: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginTop: 2,
   },
   quickGrid: {
     flexDirection: 'row',
