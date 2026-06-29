@@ -523,6 +523,23 @@ export default function ExpensesScreen() {
         <Text style={styles.spendableSub}>{t('finance.spendableHint')}</Text>
       </LinearGradient>
 
+      {/* Cash flow & runway — for variable / business income. */}
+      <TouchableOpacity
+        style={styles.cashflowRow}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('CashFlow')}>
+        <Icon name="chart-timeline-variant" size={20} color={colors.primary[600]} />
+        <View style={{flex: 1, marginLeft: spacing[3]}}>
+          <Text style={styles.cashflowTitle}>
+            {t('cashflow.title', {defaultValue: 'Cash Flow'})}
+          </Text>
+          <Text style={styles.cashflowSub}>
+            {t('cashflow.entryHint', {defaultValue: 'Months, averages & runway — for variable income'})}
+          </Text>
+        </View>
+        <Text style={styles.cashflowChevron}>›</Text>
+      </TouchableOpacity>
+
       {/* Income / Expenses / Safe breakdown. */}
       <View style={styles.statRow}>
         <View style={[styles.statCard, styles.statIncome]}>
@@ -1232,6 +1249,19 @@ const styles = StyleSheet.create({
   scopeTextActive: {
     color: colors.primary[600],
   },
+  cashflowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.paper,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+    padding: spacing[4],
+    marginBottom: spacing[4],
+  },
+  cashflowTitle: {...typography.bodyMedium, color: colors.text.primary, fontWeight: '700'},
+  cashflowSub: {...typography.caption, color: colors.text.tertiary},
+  cashflowChevron: {fontSize: 22, color: colors.text.tertiary},
   stashCard: {
     marginHorizontal: spacing[4],
     marginTop: spacing[3],

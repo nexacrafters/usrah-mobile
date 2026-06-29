@@ -73,7 +73,11 @@ export default function HomeScreen() {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const user = useAuthStore((s) => s.user);
-  const {raw, prayerTimes, fetchPrayerTimes, getNextPrayer} = usePrayerStore();
+  const {raw, prayerTimes, fetchPrayerTimes, getNextPrayer, logPrayer} = usePrayerStore();
+  const todayLogs = usePrayerStore((s) => s.todayLogs);
+  const fetchTodayLogs = usePrayerStore((s) => s.fetchTodayLogs);
+  const prayerStatus = (key: string) =>
+    todayLogs.find((l) => l.prayer === key)?.status ?? null;
   const {setTasks} = useTaskStore();
   const tasks = useTaskStore((s) => s.tasks);
 
@@ -88,6 +92,7 @@ export default function HomeScreen() {
 
   const load = useCallback(async () => {
     await fetchPrayerTimes();
+    fetchTodayLogs();
     if (getCurrentFamilyId()) {
       try {
         const data = await taskService.getTasks();
@@ -122,7 +127,7 @@ export default function HomeScreen() {
     }
     // Refresh the config-driven module catalog.
     void useSettingsStore.getState().load();
-  }, [fetchPrayerTimes, setTasks]);
+  }, [fetchPrayerTimes, fetchTodayLogs, setTasks]);
 
   useFocusEffect(
     useCallback(() => {
@@ -203,35 +208,48 @@ export default function HomeScreen() {
           </LinearGradient>
         </Card>
 
-        {/* Today's prayer strip */}
+        {/* Today's prayer strip — tap to mark prayed, long-press for missed. */}
         {prayerTimes.length > 0 && (
-          <View style={styles.prayerStrip}>
-            {prayerTimes
-              .filter((p) => p.key !== 'sunrise')
-              .map((p) => (
-                <View
-                  key={p.key}
-                  style={[
-                    styles.prayerPill,
-                    p.isNext && styles.prayerPillNext,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.prayerPillName,
-                      p.isNext && styles.prayerPillNameNext,
-                    ]}>
-                    {t(`islamic.prayers.${p.key}`)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.prayerPillTime,
-                      p.isNext && styles.prayerPillNameNext,
-                    ]}>
-                    {p.time || '--:--'}
-                  </Text>
-                </View>
-              ))}
-          </View>
+          <>
+            <View style={styles.prayerStrip}>
+              {prayerTimes
+                .filter((p) => p.key !== 'sunrise')
+                .map((p) => {
+                  const st = prayerStatus(p.key);
+                  const prayed = st === 'prayed' || st === 'qada';
+                  const missed = st === 'missed';
+                  return (
+                    <TouchableOpacity
+                      key={p.key}
+                      activeOpacity={0.8}
+                      onPress={() => logPrayer(p.key, 'prayed')}
+                      onLongPress={() => logPrayer(p.key, 'missed')}
+                      style={[
+                        styles.prayerPill,
+                        p.isNext && styles.prayerPillNext,
+                        prayed && styles.prayerPillPrayed,
+                        missed && styles.prayerPillMissed,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.prayerPillName,
+                          p.isNext && styles.prayerPillNameNext,
+                        ]}>
+                        {t(`islamic.prayers.${p.key}`)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.prayerPillTime,
+                          p.isNext && styles.prayerPillNameNext,
+                        ]}>
+                        {prayed ? '✓' : missed ? '✗' : p.time || '--:--'}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+            </View>
+            <Text style={styles.prayerStripHint}>{t('home.tapToLogPrayer', {defaultValue: 'Tap a prayer to log it · hold for missed'})}</Text>
+          </>
         )}
 
         {/* Tasks Snapshot */}
@@ -448,6 +466,21 @@ const styles = StyleSheet.create({
   prayerPillNext: {
     backgroundColor: colors.primary[50],
     borderColor: colors.primary[500],
+  },
+  prayerPillPrayed: {
+    backgroundColor: colors.islamic.mashallah + '22',
+    borderColor: colors.islamic.mashallah,
+  },
+  prayerPillMissed: {
+    backgroundColor: colors.error + '18',
+    borderColor: colors.error,
+  },
+  prayerStripHint: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    marginTop: -spacing[4],
+    marginBottom: spacing[6],
   },
   prayerPillName: {
     ...typography.caption,
