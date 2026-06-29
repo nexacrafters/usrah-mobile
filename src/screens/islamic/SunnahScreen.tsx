@@ -20,6 +20,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import sunnahService, {SunnahToday, SunnahItem} from '../../services/api/sunnah.service';
 import i18n from '../../../i18n';
+import {formatHijri} from '../../utils/datetime';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
 const KIND_META: Record<string, {icon: string; color: string}> = {
@@ -76,7 +77,9 @@ export default function SunnahScreen() {
             end={{x: 1, y: 1}}
             style={styles.hero}>
             <Text style={styles.heroWeekday}>{data?.hijri.weekday ?? ''}</Text>
-            <Text style={styles.heroDate}>{data?.hijri.formatted ?? ''}</Text>
+            <Text style={styles.heroDate}>
+              {data ? formatHijri(data.hijri.day, data.hijri.month, data.hijri.year, data.hijri.month_name) : ''}
+            </Text>
           </LinearGradient>
 
           {data && data.items.length > 0 ? (

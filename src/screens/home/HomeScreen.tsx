@@ -30,6 +30,7 @@ import expenseService from '../../services/api/expense.service';
 import habitService from '../../services/api/habit.service';
 import memorizationService from '../../services/api/memorization.service';
 import sunnahService, {SunnahToday} from '../../services/api/sunnah.service';
+import {formatHijri} from '../../utils/datetime';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 
 /** Compact money formatter — 0-9 numerals, no decimals for the dashboard. */
@@ -275,7 +276,9 @@ export default function HomeScreen() {
             style={styles.sunnahCard}>
             <View style={styles.sunnahHeader}>
               <Text style={styles.sunnahTitle}>🌙 {t('home.todayInIslam', {defaultValue: 'Today in Islam'})}</Text>
-              <Text style={styles.sunnahDate}>{sunnah.hijri.formatted}</Text>
+              <Text style={styles.sunnahDate}>
+                {formatHijri(sunnah.hijri.day, sunnah.hijri.month, sunnah.hijri.year, sunnah.hijri.month_name)}
+              </Text>
             </View>
             {sunnah.items.slice(0, 3).map((it) => (
               <Text key={it.id} style={styles.sunnahItem} numberOfLines={1}>

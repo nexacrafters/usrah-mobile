@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTranslation} from 'react-i18next';
+import i18n from '../../../i18n';
 
 import Avatar from '../../components/ui/Avatar';
 import Input from '../../components/ui/Input';
@@ -419,7 +420,9 @@ function MemberRow({
   adminLabel: string;
 }) {
   const name = member.nickname || member.user?.full_name || '—';
-  const roleText = member.is_admin ? adminLabel : member.role;
+  const roleText = member.is_admin
+    ? adminLabel
+    : i18n.t(`roles.${member.role}`, {defaultValue: member.role});
   return (
     <View style={styles.memberRow}>
       <Avatar name={member.user?.full_name} size="medium" />

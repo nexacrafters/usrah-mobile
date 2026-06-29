@@ -49,6 +49,28 @@ export function formatDate(
   );
 }
 
+const HIJRI_MONTHS_AR = [
+  'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة',
+  'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة',
+];
+
+/**
+ * Format a Hijri date with Arabic month names in Arabic mode (the server sends
+ * English month names). Digits stay 0-9.
+ */
+export function formatHijri(
+  day: number,
+  month: number,
+  year: number,
+  monthNameEn?: string,
+): string {
+  const isAr = i18n.language?.startsWith('ar');
+  if (isAr && month >= 1 && month <= 12) {
+    return `${day} ${HIJRI_MONTHS_AR[month - 1]} ${year}`;
+  }
+  return `${day} ${monthNameEn || ''} ${year}`.trim();
+}
+
 export function formatTime(
   value: string | number | Date,
   options: Intl.DateTimeFormatOptions = {hour: 'numeric', minute: '2-digit'},
