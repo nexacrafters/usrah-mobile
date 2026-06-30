@@ -19,6 +19,7 @@ import {useTranslation} from 'react-i18next';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showAlert} from '../../store/dialogStore';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import muhasabaService, {Reflection} from '../../services/api/muhasaba.service';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
@@ -75,11 +76,7 @@ export default function MuhasabaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text onPress={() => navigation.goBack()} style={styles.backIcon}>←</Text>
-        <Text style={styles.headerTitle}>{t('muhasaba.title', {defaultValue: 'Muḥāsabah'})}</Text>
-        <View style={{width: 24}} />
-      </View>
+      <ScreenHeader title={t('muhasaba.title', {defaultValue: 'Muḥāsabah'})} />
 
       {loading || !r ? (
         <ActivityIndicator style={{marginTop: spacing[10]}} color={colors.primary[500]} />

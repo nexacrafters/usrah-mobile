@@ -23,6 +23,7 @@ import expenseService from '../../services/api/expense.service';
 import savingsService from '../../services/api/savings.service';
 import {Transaction} from '../../store/expenseStore';
 import {formatDate} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
 const N_MONTHS = 6;
@@ -125,13 +126,7 @@ export default function CashFlowScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text onPress={() => navigation.goBack()} style={styles.backIcon}>
-          ←
-        </Text>
-        <Text style={styles.headerTitle}>{t('cashflow.title', {defaultValue: 'Cash Flow'})}</Text>
-        <View style={{width: 24}} />
-      </View>
+      <ScreenHeader title={t('cashflow.title', {defaultValue: 'Cash Flow'})} />
 
       {loading ? (
         <ActivityIndicator style={{marginTop: spacing[10]}} color={colors.primary[500]} />

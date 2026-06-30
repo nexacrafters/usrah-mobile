@@ -19,6 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import fastingService, {FastingLog, FastType} from '../../services/api/fasting.service';
 import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {formatDate} from '../../utils/datetime';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
@@ -78,11 +79,7 @@ export default function FastingScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text onPress={() => navigation.goBack()} style={styles.backIcon}>←</Text>
-        <Text style={styles.headerTitle}>{t('fasting.title', {defaultValue: 'Fasting'})}</Text>
-        <View style={{width: 24}} />
-      </View>
+      <ScreenHeader title={t('fasting.title', {defaultValue: 'Fasting'})} />
 
       {loading ? (
         <ActivityIndicator style={{marginTop: spacing[10]}} color={colors.primary[500]} />

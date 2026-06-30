@@ -21,6 +21,7 @@ import {useTranslation} from 'react-i18next';
 import expenseService from '../../services/api/expense.service';
 import {Transaction} from '../../store/expenseStore';
 import {formatDate} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
 const num = (v: string | number | null | undefined) => {
@@ -133,11 +134,7 @@ export default function ReportsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text onPress={() => navigation.goBack()} style={styles.backIcon}>←</Text>
-        <Text style={styles.headerTitle}>{t('reports.title', {defaultValue: 'Reports'})}</Text>
-        <View style={{width: 24}} />
-      </View>
+      <ScreenHeader title={t('reports.title', {defaultValue: 'Reports'})} />
 
       {loading ? (
         <ActivityIndicator style={{marginTop: spacing[10]}} color={colors.primary[500]} />

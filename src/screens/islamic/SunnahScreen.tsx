@@ -21,6 +21,7 @@ import {useTranslation} from 'react-i18next';
 import sunnahService, {SunnahToday, SunnahItem} from '../../services/api/sunnah.service';
 import i18n from '../../../i18n';
 import {formatHijri} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 
 const KIND_META: Record<string, {icon: string; color: string}> = {
@@ -58,11 +59,7 @@ export default function SunnahScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text onPress={() => navigation.goBack()} style={styles.backIcon}>←</Text>
-        <Text style={styles.headerTitle}>{t('sunnahDay.title', {defaultValue: 'Today in Islam'})}</Text>
-        <View style={{width: 24}} />
-      </View>
+      <ScreenHeader title={t('sunnahDay.title', {defaultValue: 'Today in Islam'})} />
 
       {loading ? (
         <ActivityIndicator style={{marginTop: spacing[10]}} color={colors.primary[500]} />
