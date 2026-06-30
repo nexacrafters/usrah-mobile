@@ -30,6 +30,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import shoppingService, {ShoppingItem} from '../../services/api/shopping.service';
 import {getCurrentFamilyId, useAuthStore} from '../../store/authStore';
 import {showAlert, showConfirm} from '../../store/dialogStore';
@@ -538,15 +539,7 @@ export default function ShoppingListScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerIconBubble}>
-          <Icon name="cart" size={22} color={colors.primary[600]} />
-        </View>
-        <View style={styles.headerText}>
-          <Text style={styles.headerTitle}>{t('shopping.title')}</Text>
-          <Text style={styles.headerSubtitle}>{t('shopping.subtitle')}</Text>
-        </View>
-      </View>
+      <ScreenHeader title={t('shopping.title')} subtitle={t('shopping.subtitle')} />
 
       {hasFamily && renderAddRow()}
 

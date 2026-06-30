@@ -25,6 +25,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import savingsService from '../../services/api/savings.service';
 import {useFinanceStore, SavingsFund} from '../../store/financeStore';
 import {getCurrentFamilyId} from '../../store/authStore';
@@ -149,16 +150,7 @@ export default function SavingsFundScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.headerBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.canGoBack() && navigation.goBack()}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <Icon name="chevron-left" size={26} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('finance.savingsGoals')}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title={t('finance.savingsGoals')} />
 
       {!hasFamily ? (
         <View style={styles.emptyState}>

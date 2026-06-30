@@ -25,6 +25,7 @@ import forumService, {
   authorAvatar,
 } from '../../services/api/forum.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {formatDate} from '../../utils/datetime';
 
 /** Lightweight relative-time formatter (no extra deps). */
@@ -225,19 +226,19 @@ export default function ForumScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t('forum.title')}</Text>
-          <Text style={styles.headerSubtitle}>{t('forum.subtitle')}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.askBtn}
-          activeOpacity={0.8}
-          onPress={() => goToPost('')}>
-          <Icon name="plus" size={18} color={colors.white} />
-          <Text style={styles.askBtnText}>{t('forum.ask')}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('forum.title')}
+        subtitle={t('forum.subtitle')}
+        right={
+          <TouchableOpacity
+            style={styles.askBtn}
+            activeOpacity={0.8}
+            onPress={() => goToPost('')}>
+            <Icon name="plus" size={18} color={colors.white} />
+            <Text style={styles.askBtnText}>{t('forum.ask')}</Text>
+          </TouchableOpacity>
+        }
+      />
 
       {chips.length > 1 && (
         <View style={styles.categoriesContainer}>

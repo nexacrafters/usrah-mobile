@@ -35,6 +35,7 @@ import {useTranslation} from 'react-i18next';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import goalsService, {
   Goal,
   GoalStatus,
@@ -277,16 +278,7 @@ export default function GoalsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.headerBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.canGoBack() && navigation.goBack()}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <Icon name="chevron-left" size={26} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('goals.title')}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title={t('goals.title')} />
 
       {!hasFamily ? (
         <View style={styles.emptyState}>

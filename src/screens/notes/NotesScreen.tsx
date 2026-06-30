@@ -37,6 +37,7 @@ import {getCurrentFamilyId, useAuthStore} from '../../store/authStore';
 import {showAlert, showConfirm} from '../../store/dialogStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 import {formatDate} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 /** Format an ISO timestamp into a short relative-ish label. */
 function formatWhen(iso: string): string {
@@ -314,14 +315,10 @@ export default function NotesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t('notes.title')}</Text>
-          <Text style={styles.headerSubtitle}>
-            {t('notes.subtitle', {count: notes.length})}
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader
+        title={t('notes.title')}
+        subtitle={t('notes.subtitle', {count: notes.length})}
+      />
 
       {renderBody()}
 

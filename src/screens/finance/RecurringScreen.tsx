@@ -29,6 +29,7 @@ import {
 } from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import recurringService, {
   RecurringRule,
   DEFAULT_CURRENCY,
@@ -195,18 +196,7 @@ export default function RecurringScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.headerBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.canGoBack() && navigation.goBack()}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <Icon name="chevron-left" size={26} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {t('recurring.title', {defaultValue: 'Recurring'})}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title={t('recurring.title', {defaultValue: 'Recurring'})} />
 
       {!hasFamily ? (
         <View style={styles.emptyState}>

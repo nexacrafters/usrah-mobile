@@ -34,6 +34,7 @@ import documentsService, {
 import {getCurrentFamilyId} from '../../store/authStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 import {formatDate as formatDateLocale} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 /** Map a server file_type bucket to an icon + accent color. */
 function fileTypeVisual(type: string): {icon: string; color: string} {
@@ -238,14 +239,10 @@ export default function DocumentsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t('documents.title')}</Text>
-          <Text style={styles.headerSubtitle}>
-            {t('documents.subtitle', {count: documents.length})}
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader
+        title={t('documents.title')}
+        subtitle={t('documents.subtitle', {count: documents.length})}
+      />
 
       {renderBody()}
     </SafeAreaView>
