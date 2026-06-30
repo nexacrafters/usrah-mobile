@@ -82,14 +82,27 @@ export default function SunnahScreen() {
           {data && data.items.length > 0 ? (
             data.items.map((it) => {
               const meta = KIND_META[it.kind] || KIND_META.sunnah;
+              // Link the recommendation to where you act on it.
+              const route =
+                it.kind === 'fast'
+                  ? 'Fasting'
+                  : it.id === 'adhkar_daily'
+                  ? 'Dhikr'
+                  : null;
               return (
-                <View key={it.id} style={[styles.card, {borderLeftColor: meta.color}]}>
+                <TouchableOpacity
+                  key={it.id}
+                  activeOpacity={route ? 0.7 : 1}
+                  disabled={!route}
+                  onPress={() => route && navigation.navigate(route as never)}
+                  style={[styles.card, {borderLeftColor: meta.color}]}>
                   <View style={styles.cardHead}>
                     <Text style={styles.cardIcon}>{meta.icon}</Text>
                     <Text style={styles.cardTitle}>{title(it)}</Text>
+                    {!!route && <Text style={styles.cardChevron}>›</Text>}
                   </View>
                   {!!note(it) && <Text style={styles.cardNote}>{note(it)}</Text>}
-                </View>
+                </TouchableOpacity>
               );
             })
           ) : (
@@ -132,6 +145,7 @@ const styles = StyleSheet.create({
   cardHead: {flexDirection: 'row', alignItems: 'center', gap: spacing[2]},
   cardIcon: {fontSize: 20},
   cardTitle: {...typography.bodyMedium, color: colors.text.primary, fontWeight: '700', flex: 1},
+  cardChevron: {fontSize: 22, color: colors.text.tertiary},
   cardNote: {...typography.bodySmall, color: colors.text.secondary, marginTop: spacing[2], lineHeight: 20},
   empty: {...typography.body, color: colors.text.secondary, textAlign: 'center', marginTop: spacing[6]},
   disclaimer: {...typography.caption, color: colors.text.tertiary, textAlign: 'center', marginTop: spacing[5], fontStyle: 'italic'},
