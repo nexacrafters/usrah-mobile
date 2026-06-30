@@ -28,6 +28,7 @@ import {
 } from './services/notificationCenter';
 import {useSettingsStore} from './store/settingsStore';
 import {scheduleReminders} from './services/reminders';
+import {refreshFamilyContext} from './services/api/session';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -88,6 +89,8 @@ function App() {
       void syncNow();
       // Pull the config-driven module catalog + preferences.
       void useSettingsStore.getState().load();
+      // Refresh the family name in case it was renamed on the server (stale cache).
+      void refreshFamilyContext();
     };
     if (useAuthStore.persist?.hasHydrated?.()) {
       runSync();

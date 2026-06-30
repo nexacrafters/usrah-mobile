@@ -93,3 +93,24 @@ export async function bootstrapSession(
     // No family yet / network hiccup — keep the user signed in regardless.
   }
 }
+
+/**
+ * Refresh the cached family name from the server. The name is set at login and
+ * persisted, so if the family was later renamed the local cache goes stale
+ * (e.g. an old "My Space"). Call on app open to keep it current.
+ */
+export async function refreshFamilyContext(): Promise<void> {
+  try {
+    const {currentFamilyId, setCurrentFamily} = useAuthStore.getState();
+    const res = await apiClient.get('/families/');
+    const families = asArray<ApiFamily>(res.data);
+    if (families.length === 0) {
+      return;
+    }
+    const match =
+      families.find((f) => f.public_id === currentFamilyId) || families[0];
+    setCurrentFamily(match.public_id, match.name);
+  } catch {
+    // best-effort
+  }
+}

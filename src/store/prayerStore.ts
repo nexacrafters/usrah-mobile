@@ -116,6 +116,14 @@ export const buildPrayerTimes = (data: PrayerTimesResponse): PrayerTime[] => {
   );
   if (next) {
     next.isNext = true;
+  } else {
+    // All of today's prayers have passed (after Isha) — the next prayer is
+    // tomorrow's Fajr. Mark it so the UI keeps showing a "next prayer".
+    const fajr = rows.find((r) => r.key === 'fajr');
+    if (fajr) {
+      fajr.isNext = true;
+      fajr.isPassed = false;
+    }
   }
   return rows;
 };
