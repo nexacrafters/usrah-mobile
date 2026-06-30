@@ -24,6 +24,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
 import Card from '../../components/ui/Card';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 const ZAKAT_RATE = 0.025;
 // Default nisab ≈ value of 85g gold; editable by the user to match local prices.
@@ -114,10 +115,7 @@ export default function ZakatScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.zakatTitle')}</Text>
-        <Text style={styles.headerSubtitle}>{t('islamic.zakatSubtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.zakatTitle')} subtitle={t('islamic.zakatSubtitle')} />
 
       <KeyboardAvoidingView
         style={styles.flex}

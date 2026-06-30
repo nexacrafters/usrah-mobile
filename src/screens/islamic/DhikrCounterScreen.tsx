@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
 import {showConfirm} from '../../store/dialogStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 const STORAGE_KEY = '@usrah/dhikr-counts';
 
@@ -106,10 +107,7 @@ export default function DhikrCounterScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.dhikrTitle')}</Text>
-        <Text style={styles.headerSubtitle}>{t('islamic.dhikrSubtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.dhikrTitle')} subtitle={t('islamic.dhikrSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

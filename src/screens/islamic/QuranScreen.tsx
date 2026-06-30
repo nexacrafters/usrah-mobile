@@ -24,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 interface Surah {
   number: number;
@@ -188,10 +189,7 @@ export default function QuranScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.quranTitle')}</Text>
-        <Text style={styles.headerSubtitle}>{t('islamic.quranSubtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.quranTitle')} subtitle={t('islamic.quranSubtitle')} />
 
       <View style={styles.searchWrap}>
         <Icon name="magnify" size={20} color={colors.text.tertiary} />

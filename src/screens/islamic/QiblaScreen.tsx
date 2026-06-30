@@ -24,6 +24,7 @@ import Geolocation from '@react-native-community/geolocation';
 import {useTranslation} from 'react-i18next';
 import Card from '../../components/ui/Card';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 // Kaaba (Makkah, Saudi Arabia)
 const KAABA_LAT = 21.4225;
@@ -121,10 +122,7 @@ export default function QiblaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.qiblaTitle')}</Text>
-        <Text style={styles.headerSubtitle}>{t('islamic.qiblaSubtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.qiblaTitle')} subtitle={t('islamic.qiblaSubtitle')} />
 
       {loading ? (
         <View style={styles.centered}>

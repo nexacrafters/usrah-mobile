@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
 import Card from '../../components/ui/Card';
 import {colors, spacing, typography, borderRadius} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 interface HijriMonth {
   number: number;
@@ -83,9 +84,7 @@ export default function HijriCalendarScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.hijriTitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.hijriTitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

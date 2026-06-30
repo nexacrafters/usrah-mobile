@@ -26,6 +26,7 @@ import {useTranslation} from 'react-i18next';
 import Card from '../../components/ui/Card';
 import apiClient, {handleApiError, unwrapList} from '../../services/api/client';
 import {colors, spacing, typography, borderRadius} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 interface DuaCategory {
   id: string;
@@ -142,10 +143,7 @@ export default function DuasScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('islamic.duasTitle')}</Text>
-        <Text style={styles.headerSubtitle}>{t('islamic.duasSubtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('islamic.duasTitle')} subtitle={t('islamic.duasSubtitle')} />
 
       {loading ? (
         <View style={styles.centered}>
