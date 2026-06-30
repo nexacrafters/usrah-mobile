@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
   titleWrap: {flex: 1, alignItems: 'center', paddingHorizontal: spacing[2]},
   title: {...typography.h4, color: colors.text.primary, fontWeight: '700'},
   subtitle: {...typography.caption, color: colors.text.secondary, marginTop: 1},
-  right: {width: 40, alignItems: 'flex-end'},
+  right: {minWidth: 40, alignItems: 'flex-end'},
   rightSpacer: {width: 40, height: 40},
 });

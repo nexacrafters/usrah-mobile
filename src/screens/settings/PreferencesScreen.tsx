@@ -18,6 +18,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Input from '../../components/ui/Input';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {useSettingsStore} from '../../store/settingsStore';
 import i18n from '../../../i18n';
 import {colors, spacing, typography, borderRadius} from '../../theme';
@@ -57,13 +58,7 @@ export default function PreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('preferences.title', {defaultValue: 'Preferences'})}</Text>
-        <View style={{width: 36}} />
-      </View>
+      <ScreenHeader title={t('preferences.title', {defaultValue: 'Preferences'})} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Household type — Individual / Married / Family */}

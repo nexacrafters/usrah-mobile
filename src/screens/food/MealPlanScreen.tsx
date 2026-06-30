@@ -19,6 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import mealPlanService, {MealPlan, MealType} from '../../services/api/mealplan.service';
 import {colors, spacing, typography, borderRadius} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {formatDate} from '../../utils/datetime';
 
 const MEAL_TYPES: Array<{id: MealType; icon: string}> = [
@@ -100,13 +101,7 @@ export default function MealPlanScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('mealPlan.title')}</Text>
-        <View style={{width: 36}} />
-      </View>
+      <ScreenHeader title={t('mealPlan.title')} />
 
       {/* Day selector */}
       <View style={styles.daysWrap}>

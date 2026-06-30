@@ -21,6 +21,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showConfirm} from '../../store/dialogStore';
 import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import pantryService, {
   PantryItem,
   PantryCategory,
@@ -141,19 +142,18 @@ export default function PantryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('pantry.title')}</Text>
-        <TouchableOpacity
-          onPress={() => setShowLowOnly((v) => !v)}
-          style={[styles.lowFilter, showLowOnly && styles.lowFilterOn]}>
-          <Text style={[styles.lowFilterText, showLowOnly && styles.lowFilterTextOn]}>
-            {t('pantry.lowOnly')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('pantry.title')}
+        right={
+          <TouchableOpacity
+            onPress={() => setShowLowOnly((v) => !v)}
+            style={[styles.lowFilter, showLowOnly && styles.lowFilterOn]}>
+            <Text style={[styles.lowFilterText, showLowOnly && styles.lowFilterTextOn]}>
+              {t('pantry.lowOnly')}
+            </Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}

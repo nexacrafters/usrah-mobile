@@ -23,6 +23,7 @@ import Avatar from '../../components/ui/Avatar';
 import {showConfirm, showAlert} from '../../store/dialogStore';
 import {useFamilyStore, FamilyMember} from '../../store/familyStore';
 import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {getCurrentFamilyId} from '../../store/authStore';
 import masroufService, {Masrouf} from '../../services/api/masrouf.service';
 import familyService from '../../services/api/family.service';
@@ -124,15 +125,14 @@ export default function MasroufScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('masrouf.title')}</Text>
-        <TouchableOpacity onPress={() => setShowForm((v) => !v)} style={styles.addBtn}>
-          <Text style={styles.addBtnText}>{showForm ? '✕' : '+'}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('masrouf.title')}
+        right={
+          <TouchableOpacity onPress={() => setShowForm((v) => !v)} style={styles.addBtn}>
+            <Text style={styles.addBtnText}>{showForm ? '✕' : '+'}</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}

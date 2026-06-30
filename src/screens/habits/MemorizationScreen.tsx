@@ -21,6 +21,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import {showConfirm} from '../../store/dialogStore';
 import IslamicEmptyState from '../../components/ui/IslamicEmptyState';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import memorizationService, {
   Memorization,
   MemorizationType,
@@ -167,15 +168,14 @@ export default function MemorizationScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('hifz.title')}</Text>
-        <TouchableOpacity onPress={() => setShowForm((v) => !v)} style={styles.addBtn}>
-          <Text style={styles.addBtnText}>{showForm ? '✕' : '+'}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title={t('hifz.title')}
+        right={
+          <TouchableOpacity onPress={() => setShowForm((v) => !v)} style={styles.addBtn}>
+            <Text style={styles.addBtnText}>{showForm ? '✕' : '+'}</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
