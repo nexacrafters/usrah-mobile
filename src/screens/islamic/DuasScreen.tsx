@@ -27,6 +27,7 @@ import Card from '../../components/ui/Card';
 import apiClient, {handleApiError, unwrapList} from '../../services/api/client';
 import {colors, spacing, typography, borderRadius} from '../../theme';
 import ScreenHeader from '../../components/ui/ScreenHeader';
+import i18n from '../../../i18n';
 
 interface DuaCategory {
   id: string;
@@ -54,10 +55,13 @@ const id = (v: Record<string, unknown>): string =>
   String(v.public_id ?? v.id ?? v.slug ?? Math.random());
 
 function normalizeCategory(raw: Record<string, unknown>): DuaCategory {
-  return {
-    id: id(raw),
-    name: str(raw.name, raw.title, raw.name_en, raw.label) ?? '',
-  };
+  // Prefer the Arabic name when the app is in Arabic (the seeded category
+  // names are English, which leaked into the Arabic UI).
+  const isAr = i18n.language?.startsWith('ar');
+  const name = isAr
+    ? str(raw.name_ar, raw.title_ar, raw.name, raw.title, raw.label)
+    : str(raw.name, raw.title, raw.name_en, raw.label);
+  return {id: id(raw), name: name ?? ''};
 }
 
 function normalizeDua(raw: Record<string, unknown>): Dua {

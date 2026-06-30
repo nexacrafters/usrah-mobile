@@ -23,6 +23,7 @@ import calendarService, {CalendarEvent} from '../../services/api/calendar.servic
 import {getCurrentFamilyId} from '../../store/authStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
 import {formatDate} from '../../utils/datetime';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 type Section = {key: string; title: string; data: CalendarEvent[]};
 
@@ -250,18 +251,18 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{t('calendar.title')}</Text>
-          <Text style={styles.headerSubtitle}>{t('calendar.subtitle')}</Text>
-        </View>
-        {hasFamily && (
-          <TouchableOpacity style={styles.newButton} onPress={goToAdd}>
-            <Icon name="plus" size={18} color={colors.white} />
-            <Text style={styles.newButtonText}>{t('calendar.newEvent')}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <ScreenHeader
+        title={t('calendar.title')}
+        subtitle={t('calendar.subtitle')}
+        right={
+          hasFamily ? (
+            <TouchableOpacity style={styles.newButton} onPress={goToAdd}>
+              <Icon name="plus" size={18} color={colors.white} />
+              <Text style={styles.newButtonText}>{t('calendar.newEvent')}</Text>
+            </TouchableOpacity>
+          ) : undefined
+        }
+      />
 
       {renderBody()}
 

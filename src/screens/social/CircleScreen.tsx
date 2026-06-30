@@ -25,6 +25,7 @@ import {getCurrentFamilyId, useAuthStore} from '../../store/authStore';
 import {showAlert} from '../../store/dialogStore';
 import socialService, {Post, ReactionType} from '../../services/api/social.service';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import {formatRelativeTime, sumReactions} from './socialUtils';
 
 export default function CircleScreen() {
@@ -337,10 +338,7 @@ export default function CircleScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('social.title')}</Text>
-        <Text style={styles.headerSubtitle}>{t('social.subtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('social.title')} subtitle={t('social.subtitle')} />
       {renderBody()}
     </SafeAreaView>
   );

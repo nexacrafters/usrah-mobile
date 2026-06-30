@@ -21,6 +21,7 @@ import Avatar from '../../components/ui/Avatar';
 import halaqatService, {Halaqa} from '../../services/api/halaqat.service';
 import {showAlert} from '../../store/dialogStore';
 import {colors, spacing, typography, borderRadius, shadows} from '../../theme';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 
 export default function HalaqatScreen() {
   const {t} = useTranslation();
@@ -216,10 +217,7 @@ export default function HalaqatScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('halaqat.title')}</Text>
-        <Text style={styles.headerSubtitle}>{t('halaqat.subtitle')}</Text>
-      </View>
+      <ScreenHeader title={t('halaqat.title')} subtitle={t('halaqat.subtitle')} />
 
       <FlatList
         data={halaqat}
